@@ -1,5 +1,6 @@
 /* Modern Warfare 2 (Svoboden's Themes): what its colours alone can't give. Every rule waits for this theme's
-   --theme-id (its tokens set it on :root), so the other themes look as they did; the orbit map is left as it is.
+   --theme-id (its tokens set it on :root), so the other themes look as they did; the orbit map has a gate of its own,
+   the last one.
    Two gates: rules for elements wait in the unnamed style query, which honours the map's reset below; rules for
    ::before/::after wait in the one named on <html>: under an unnamed query WebKit does not re-read a pseudo-element's
    style when the theme changes live, so they stayed on screen (the app now refreshes them; this works on older ones too).
@@ -13,7 +14,7 @@
 
 /* both gates read <html>; the other sheets of the pack name it the same */
 html { container-name: svb-root; }
-/* the orbit map keeps its own look */
+/* the unnamed gates stay out of the orbit map (its own gate, the last one, themes it) */
 #mapwrap { --theme-id: none; }
 
 /* motion, named for this theme alone: nothing runs them except the gated rules below, and only without "reduce motion" */
@@ -334,6 +335,106 @@ html { container-name: svb-root; }
   :is(textarea:disabled, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: not-allowed !important; }
   :is(#takeover:not(.free), #takeover:not(.free) *, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: none !important; }
   @media (max-width: 920px) { :is(.pl-panel > header, .pl-panel > header :not(button), #mw2#mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, default !important; } }
+}
+
+/* ===== the friend chat (the notices page's chat panel, messages.js frameHTML, paint and paintList): the squad's radio
+   log. The callsign in tracked caps, in brackets; each line a transmission with its signal bar, NVG teal received,
+   lime sent, RX or TX on its time; the input the TRANSMIT field; NVG scanlines behind. The presence dots, the unread
+   counts, a failed send and "not friends anymore" keep the app's colours. ===== */
+@container style(--theme-id: svoboden-modern-warfare-2) {
+  #chatwin .mb, #chatwin .mb .mb-border { border-radius: 2px; }
+  #chatwin .mb-tag { font: 600 1.08em/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.18em; }
+  #chatwin .mb-who > span:not(.lvb) { font: 600 1.18em/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
+  #chatwin :is(.mb-sub, .mb-day, .mb-msg .t) { font: 500 1.02em "Svb Barlow Condensed", var(--font); letter-spacing: 0.18em; text-transform: uppercase; }
+  #chatwin :is(.mb-day, .mb-msg:not(.failed) .t) { color: #7b7977; }
+  #chatwin .mb-list { background: repeating-linear-gradient(0deg, rgba(45, 148, 133, 0.07) 0 1px, transparent 1px 3px); }
+  #chatwin .mb-msg .b { border-color: rgba(223, 221, 220, 0.12); border-radius: 0; background: linear-gradient(90deg, rgba(95, 196, 180, 0.13), rgba(37, 37, 32, 0.55) 40%); box-shadow: inset 3px 0 0 #5fc4b4; }
+  #chatwin .mb-msg.mine .b { background: linear-gradient(90deg, rgba(152, 213, 56, 0.14), rgba(37, 37, 32, 0.55) 40%); box-shadow: inset 3px 0 0 #98d538; }
+  #chatwin .mb-msg.failed .b { border-color: var(--red); box-shadow: inset 3px 0 0 var(--red); }
+  #chatwin .mb-input { position: relative; border-radius: 0; border-color: rgba(223, 221, 220, 0.25); background: rgba(20, 19, 15, 0.85); }
+  #chatwin .mb-input:focus-within { border-color: #98d538; box-shadow: 0 0 12px rgba(152, 213, 56, 0.25); }
+  #chatwin .mb-input .pr { color: #dcad00; text-shadow: 0 0 8px rgba(220, 173, 0, 0.6); }
+  #chatwin .mb-input textarea { caret-color: #98d538; }
+  #chatwin .mb-input .send { border-radius: 0; font: 600 13px/20px "Svb Barlow Condensed", var(--font); letter-spacing: 0.16em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+  #chatwin .mb-input .send:focus-visible { outline-offset: -2px; }
+  #chatwin :is(.mb-switch button, .mb-more, .mb-gone) { border-radius: 0; }
+}
+@container svb-root style(--theme-id: svoboden-modern-warfare-2) {
+  /* the callsign in brackets, as on the squad's net */
+  #chatwin .mb-who > span:not(.lvb)::before { content: "["; }
+  #chatwin .mb-who > span:not(.lvb)::after { content: "]"; }
+  /* each line's time says which way it went: RX received, TX sent (a failed one keeps the app's red) */
+  #chatwin .mb-msg .t::before { content: "RX \B7  "; color: #5fc4b4; }
+  #chatwin .mb-msg.mine .t::before { content: "TX \B7  "; color: #98d538; }
+  #chatwin .mb-msg.failed .t::before { color: inherit; }
+  #chatwin .mb-day::before { content: "// "; }
+  #chatwin .mb-day::after { content: " //"; }
+  /* the input as the TRANSMIT field: its legend on the top border */
+  #chatwin .mb-input::before {
+    content: "TRANSMIT"; position: absolute; left: 8px; top: -6px; padding: 0 5px; pointer-events: none;
+    background: rgba(20, 19, 15, 0.94); color: #98d538; font: 600 9px/11px "Svb Barlow Condensed", var(--font); letter-spacing: 0.3em;
+  }
+}
+
+/* ===== the orbit map, on the gunship's thermal camera. The map keeps the default theme's tokens (Themes.swift sets them
+   again on #mapwrap) and the unnamed gate is closed there, so this gate is the named one, element rules and all, every
+   selector starting at #mapwrap (a hook on :root may come before it), and it names the theme's colours. ===== */
+/* the UAV's sweep over the map, twice round, then gone */
+@keyframes svb-mw2-mapuav { 0% { opacity: 0; transform: rotate(0deg); } 8%, 86% { opacity: 1; } 100% { opacity: 0; transform: rotate(720deg); visibility: hidden; } }
+@container svb-root style(--theme-id: svoboden-modern-warfare-2) {
+  /* white-hot: the colour drained to a partial grade and the hot parts blown out white, the four status colours kept
+     apart by their hue (needs you stays red). The legend's keys and the minimap take the same grade, so they still
+     match. One filter, never animated */
+  #mapwrap :is(#space > canvas, #minimap, .legend i) { filter: saturate(0.5) contrast(1.4) brightness(1.08); }
+  /* the sight sits between the picture and the labels, so the labels stay on top as they were */
+  #mapwrap #space { isolation: isolate; }
+  #mapwrap #space > .labels { z-index: 2; }
+  #mapwrap #space::before, #mapwrap #space::after { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  /* the gunship's sight: a white-hot crosshair with its centre left open and the targeting box's corners round it, thin
+     brackets at the frame's corners, and the sensor's grain */
+  #mapwrap #space::after {
+    content: "";
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cg fill='none' stroke='%23dfdddc' stroke-opacity='.42'%3E%3Cpath d='M200.5 20V128M200.5 272V380M20 200.5H128M272 200.5H380M144.5 160V144.5H160M240 144.5H256.5V160M256.5 240V256.5H240M160 256.5H144.5V240'/%3E%3Cpath d='M192 80.5H209M192 320.5H209M80.5 192V209M320.5 192V209' stroke-opacity='.3'/%3E%3C/g%3E%3C/svg%3E") 50% 50% / 400px 400px no-repeat,
+      linear-gradient(rgba(223, 221, 220, 0.5), rgba(223, 221, 220, 0.5)) left 6px top 26px / 18px 1px no-repeat, linear-gradient(rgba(223, 221, 220, 0.5), rgba(223, 221, 220, 0.5)) left 6px top 26px / 1px 18px no-repeat,
+      linear-gradient(rgba(223, 221, 220, 0.5), rgba(223, 221, 220, 0.5)) right 6px top 26px / 18px 1px no-repeat, linear-gradient(rgba(223, 221, 220, 0.5), rgba(223, 221, 220, 0.5)) right 6px top 26px / 1px 18px no-repeat,
+      linear-gradient(rgba(223, 221, 220, 0.5), rgba(223, 221, 220, 0.5)) left 6px bottom 24px / 18px 1px no-repeat, linear-gradient(rgba(223, 221, 220, 0.5), rgba(223, 221, 220, 0.5)) left 6px bottom 24px / 1px 18px no-repeat,
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .88 0 0 0 0 .87 0 0 0 0 .84 .22 0 0 0 -.09'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px;
+  }
+  /* the map's own tag, readouts, buttons and minimap: the menu's slanted tab, the sight's grey plates */
+  #mapwrap .maptag span { background: #98d538; color: #010101; font: 600 1.14em/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.14em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+  #mapwrap :is(.maptag em, .legend, #pwr, .corel) { color: #7b7977; }
+  #mapwrap .legend .hint { color: #5c5a52; }
+  #mapwrap #viewctl button { border-color: rgba(223, 221, 220, 0.3); color: #dfdddc; background: rgba(20, 19, 15, 0.85); }
+  #mapwrap #viewctl button:hover { border-color: #dcad00; color: #dcad00; box-shadow: 0 0 10px rgba(220, 173, 0, 0.3); }
+  #mapwrap #viewctl button.off { color: #5c5a52; }
+  #mapwrap #minimap { border-color: rgba(223, 221, 220, 0.35); }
+  #mapwrap :is(#tip, #pwr-tip) { border-color: rgba(152, 213, 56, 0.55); box-shadow: inset 0 -2px 0 rgba(220, 173, 0, 0.55), 0 0 18px rgba(0, 0, 0, 0.5); }
+  #mapwrap .cine-tag { border-color: rgba(223, 221, 220, 0.35); color: #dfdddc; }
+
+  /* power save (the map at 30 fps): the grade and the sight stand down, a pass fewer in every frame */
+  #mapwrap:has(> #pwr.on) :is(#space > canvas, #minimap, .legend i) { filter: none; }
+  #mapwrap:has(> #pwr.on) #space::after { content: none; }
+
+  /* hooks, under the labels: the UAV tier (data-streak-milestone="3") sweeps the map in NVG teal, twice round, range
+     rings and all; a run that ended (data-streak-break) loses the feed to static for a moment. With no hooks (a stock
+     app) the attributes never come and nothing shows */
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-streak-milestone="3"] #mapwrap #space::before {
+      content: ""; inset: auto; left: 50%; top: 50%; width: 150%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle, transparent 0 calc(12.5% - 1px), rgba(95, 196, 180, 0.22) calc(12.5% - 1px) 12.5%),
+        conic-gradient(transparent 0 270deg, rgba(95, 196, 180, 0.05) 270deg, rgba(95, 196, 180, 0.3) 357deg, rgba(186, 254, 186, 0.8) 359.4deg, transparent 0);
+      animation: svb-mw2-mapuav 2.8s linear both;
+    }
+    :root[data-streak-break] #mapwrap #space::before {
+      content: ""; inset: -12%; opacity: 0;
+      background:
+        repeating-linear-gradient(0deg, rgba(20, 19, 15, 0.55) 0 1px, transparent 1px 3px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .88 0 0 0 0 .87 0 0 0 0 .82 1.5 0 0 0 -.5'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px 160px;
+      animation: svb-mw2-static 0.75s steps(3, end) both;
+    }
+  }
 }
 
 /* the theme screen (shown under whichever theme is on, so outside the gate): only this theme's own card, which shows

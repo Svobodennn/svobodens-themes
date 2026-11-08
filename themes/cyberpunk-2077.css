@@ -1,13 +1,14 @@
 /* Cyberpunk 2077 (Svoboden's Themes): Night City's interface over the theme's colours. Every rule below applies only
    while this theme is chosen (its tokens set --theme-id: svoboden-cyberpunk-2077 on :root), so the other themes look as
-   they did; the orbit map is left as it is. Original recreations of the game's UI style: no logotype, no corporate marks.
+   they did; the orbit map has a block of its own (the last gate). Original recreations of the game's UI style: no
+   logotype, no corporate marks.
    Fonts: Rajdhani and Orbitron (SIL Open Font License, fonts/OFL-*.txt). */
 
 @font-face { font-family: "Svb Rajdhani"; src: url("fonts/Rajdhani-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Svb Rajdhani"; src: url("fonts/Rajdhani-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "Svb Orbitron"; src: url("fonts/Orbitron-Variable.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }
 
-/* the orbit map keeps its own look */
+/* the unnamed gate stays out of the orbit map (its own block, at the end, themes it) */
 #mapwrap { --theme-id: none; }
 /* <html> by name, for the pseudo-elements' gate (the last block); the app names no containers */
 html { container-name: svb-root; }
@@ -339,6 +340,127 @@ html { container-name: svb-root; }
     #boot.gone::after { animation-play-state: paused; }
     .mb.peek .mb-head::after { animation: svb-cp77-ring 1.2s steps(1, end) infinite; }
     html.behind #app::after { animation-play-state: paused !important; }
+  }
+}
+
+/* ===== The friend chat (the notices page's chat panel, messages.js frameHTML, paint and paintList): an in-game
+   messenger on the holocall frame the notices already wear. The caller's lines in Kiroshi cyan, yours in the brand
+   yellow, both cut at a corner; Rajdhani names; a cut-corner input with a cyan caret; send as a quickhack chip. The
+   presence dots, the unread counts, a failed send and "not friends anymore" keep the app's colours. ===== */
+@container style(--theme-id: svoboden-cyberpunk-2077) {
+  #chatwin .mb-who > span:not(.lvb) { font: 700 1.2em/1 "Svb Rajdhani", var(--font); letter-spacing: 0.06em; text-transform: uppercase; }
+  #chatwin .mb-sub { color: rgba(94, 246, 255, 0.8); font: 500 0.78em "Svb Orbitron", var(--font); letter-spacing: 0.14em; text-transform: uppercase; }
+  #chatwin .mb-list { background: repeating-linear-gradient(0deg, rgba(94, 246, 255, 0.035) 0 1px, transparent 1px 3px); }
+  #chatwin .mb-day { color: rgba(94, 246, 255, 0.55); font: 500 0.74em "Svb Orbitron", var(--font); letter-spacing: 0.3em; }
+  #chatwin .mb-msg .b {
+    border-color: rgba(94, 246, 255, 0.45); border-radius: 0; box-shadow: inset 2px 0 0 #5ef6ff;
+    background: linear-gradient(to bottom left, transparent 50%, rgba(94, 246, 255, 0.45) 50% calc(50% + 1px), transparent calc(50% + 1px)) right top / 9px 9px no-repeat border-box,
+      linear-gradient(90deg, rgba(94, 246, 255, 0.13), rgba(94, 246, 255, 0.04));
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  }
+  #chatwin .mb-msg.mine .b {
+    border-color: rgba(252, 238, 10, 0.5); box-shadow: inset -2px 0 0 #fcee0a;
+    background: linear-gradient(to top right, transparent 50%, rgba(252, 238, 10, 0.5) 50% calc(50% + 1px), transparent calc(50% + 1px)) left bottom / 9px 9px no-repeat border-box,
+      linear-gradient(270deg, rgba(252, 238, 10, 0.12), rgba(252, 238, 10, 0.03));
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  #chatwin .mb-msg.failed .b { border-color: var(--red); box-shadow: inset -2px 0 0 var(--red); }
+  #chatwin .mb-msg:not(.failed) .t { color: rgba(94, 246, 255, 0.55); font: 500 0.74em "Svb Orbitron", var(--font); letter-spacing: 0.1em; }
+  #chatwin .mb-msg.mine:not(.failed) .t { color: rgba(252, 238, 10, 0.6); }
+  #chatwin .mb-input {
+    border-radius: 0; border-color: rgba(94, 246, 255, 0.45);
+    background: linear-gradient(to top left, transparent 50%, rgba(94, 246, 255, 0.6) 50% calc(50% + 1px), transparent calc(50% + 1px)) right bottom / 10px 10px no-repeat border-box, rgba(5, 5, 9, 0.62);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+  }
+  #chatwin .mb-input:focus-within { border-color: #5ef6ff; box-shadow: inset 0 0 14px rgba(94, 246, 255, 0.2); }
+  #chatwin .mb-input textarea { caret-color: #5ef6ff; }
+  /* send: a quickhack chip, the yellow die with its pins along the top and the foot */
+  #chatwin .mb-input .send {
+    border-radius: 0; color: #010102; font: 700 12px/20px "Svb Rajdhani", var(--font); letter-spacing: 0.14em; text-transform: uppercase;
+    background: repeating-linear-gradient(90deg, rgba(1, 1, 2, 0.7) 0 1px, transparent 1px 4px) 50% 0 / calc(100% - 10px) 2px no-repeat,
+      repeating-linear-gradient(90deg, rgba(1, 1, 2, 0.7) 0 1px, transparent 1px 4px) 50% 100% / calc(100% - 10px) 2px no-repeat, #fcee0a;
+    clip-path: polygon(4px 0, calc(100% - 4px) 0, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0 calc(100% - 4px), 0 4px);
+  }
+  #chatwin .mb-input .send:focus-visible { outline: 2px solid #5ef6ff; outline-offset: -3px; }
+  #chatwin :is(.mb-switch button, .mb-more, .mb-gone) { border-radius: 0; }
+  #chatwin :is(.mb-switch button, .mb-more) { border-color: rgba(94, 246, 255, 0.35); }
+  #chatwin :is(.mb-switch button, .mb-more):hover { border-color: #fcee0a; }
+  #chatwin .mb-empty { color: rgba(94, 246, 255, 0.6); }
+}
+@container svb-root style(--theme-id: svoboden-cyberpunk-2077) {
+  /* nothing said yet: the holocall's line stands open */
+  #chatwin .mb-empty::before { content: "HOLOCALL \B7  LINE OPEN"; display: block; margin-bottom: 10px; color: #fcee0a; font: 600 8px/1.2 "Svb Orbitron", var(--font); letter-spacing: 0.3em; }
+}
+
+/* ===== The orbit map, seen through Kiroshi optics. The map keeps the default theme's tokens (Themes.swift sets them
+   again on #mapwrap, so var(--accent) there is orange) and the unnamed gate is closed there, so this block is in the
+   svb-root gate, element rules too, every selector starting at #mapwrap (a hook on :root may come before it), and it
+   names the theme's colours outright. ===== */
+@container svb-root style(--theme-id: svoboden-cyberpunk-2077) {
+  /* the optics' cool cast: greys and whites go steel-cyan, the four status colours keep their hue (8 degrees at most;
+     needs you stays red). The legend's keys and the minimap take the same grade, so they still match the map. One
+     filter, never animated */
+  #mapwrap :is(#space > canvas, #minimap, .legend i) { filter: hue-rotate(-150deg) sepia(0.3) hue-rotate(150deg) saturate(2.2); }
+  /* the optics' overlays sit between the picture and the labels, so the labels stay on top as they were */
+  #mapwrap #space { isolation: isolate; }
+  #mapwrap #space > .labels { z-index: 2; }
+  #mapwrap #space::before, #mapwrap #space::after { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  /* the scanner's frame: yellow corner pieces (the last one round the minimap, with the game's 45-degree cut), a cyan
+     range scale down the left edge and along the top, and a faint netrunner grid */
+  #mapwrap #space::after {
+    content: "";
+    background:
+      linear-gradient(#fcee0a, #fcee0a) left 6px top 26px / 24px 2px no-repeat, linear-gradient(#fcee0a, #fcee0a) left 6px top 26px / 2px 24px no-repeat,
+      linear-gradient(#fcee0a, #fcee0a) right 6px top 26px / 24px 2px no-repeat, linear-gradient(#fcee0a, #fcee0a) right 6px top 26px / 2px 24px no-repeat,
+      linear-gradient(#fcee0a, #fcee0a) left 6px bottom 24px / 24px 2px no-repeat, linear-gradient(#fcee0a, #fcee0a) left 6px bottom 24px / 2px 24px no-repeat,
+      linear-gradient(to top left, transparent 50%, #fcee0a 50% calc(50% + 2px), transparent calc(50% + 2px)) right 3px bottom 3px / 12px 12px no-repeat,
+      linear-gradient(#fcee0a, #fcee0a) right 14px bottom 3px / 30px 2px no-repeat, linear-gradient(#fcee0a, #fcee0a) right 3px bottom 14px / 2px 30px no-repeat,
+      repeating-linear-gradient(rgba(94, 246, 255, 0.5) 0 1px, transparent 1px 12px) left 1px top 60px / 4px calc(100% - 120px) no-repeat,
+      repeating-linear-gradient(rgba(94, 246, 255, 0.6) 0 1px, transparent 1px 48px) left 1px top 60px / 9px calc(100% - 120px) no-repeat,
+      repeating-linear-gradient(90deg, rgba(94, 246, 255, 0.45) 0 1px, transparent 1px 12px) 50% 1px / 40% 4px no-repeat,
+      repeating-linear-gradient(90deg, rgba(94, 246, 255, 0.035) 0 1px, transparent 1px 48px), repeating-linear-gradient(rgba(94, 246, 255, 0.035) 0 1px, transparent 1px 48px);
+  }
+
+  /* the map's own tag, readouts, buttons and minimap in the game's dress: the yellow cut-corner tab, Kiroshi cyan */
+  #mapwrap .maptag span {
+    background: #fcee0a; color: #010102; font: 700 1.12em "Svb Rajdhani", var(--font); letter-spacing: 0.12em; text-transform: uppercase;
+    clip-path: polygon(-1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% - 7px), calc(100% - 7px) calc(100% + 1px), -1px calc(100% + 1px));
+  }
+  #mapwrap :is(.maptag em, .legend, #pwr, .corel) { color: #6b8389; }
+  #mapwrap .legend .hint { color: #3a454e; }
+  #mapwrap .sl { color: rgba(198, 246, 248, 0.9); }
+  #mapwrap #viewctl button {
+    border-color: rgba(94, 246, 255, 0.45); color: #5ef6ff;
+    background: linear-gradient(to top left, transparent 50%, rgba(94, 246, 255, 0.6) 50% calc(50% + 1px), transparent calc(50% + 1px)) right bottom / 6px 6px no-repeat, rgba(8, 8, 15, 0.85);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+  }
+  #mapwrap #viewctl button:hover { border-color: #fcee0a; color: #fcee0a; }
+  #mapwrap #viewctl button.off { color: #3a454e; }
+  #mapwrap #viewctl button:focus-visible { outline: 2px solid #5ef6ff; outline-offset: -3px; }
+  #mapwrap #minimap { border-color: rgba(94, 246, 255, 0.45); }
+  #mapwrap :is(#tip, #pwr-tip) { border-color: rgba(94, 246, 255, 0.6); box-shadow: inset 2px 0 0 #fcee0a, 0 0 18px rgba(94, 246, 255, 0.2); }
+  #mapwrap .cine-tag { border-color: rgba(94, 246, 255, 0.4); color: #5ef6ff; }
+
+  /* power save (the map at 30 fps): the grade and the frame stand down, a pass fewer in every frame */
+  #mapwrap:has(> #pwr.on) :is(#space > canvas, #minimap, .legend i) { filter: none; }
+  #mapwrap:has(> #pwr.on) #space::after { content: none; }
+
+  /* hooks: a clean run uploads (data-streak-milestone) and the optics scan the map, a yellow line with its cyan wash
+     crossing it once under the labels; a session needs you or it's your turn (data-session-status) and the optics pull
+     focus, the frame closing in on the map. Two chats on one file need nothing here: the dashboard's Relic malfunction
+     already tears the whole window, map and all. With no hooks (a stock app) the attributes never come */
+  @keyframes svb-cp77-mapscan {
+    0% { opacity: 1; transform: translateX(-100%); }
+    78% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(0); visibility: hidden; }
+  }
+  @keyframes svb-cp77-mapfocus { 0% { opacity: 0.35; transform: scale(1.04); } 45% { opacity: 1; transform: scale(0.994); } 100% { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-streak-milestone] #mapwrap #space::before {
+      content: ""; animation: svb-cp77-mapscan 1.3s cubic-bezier(0.45, 0, 0.3, 1) both;
+      background: linear-gradient(90deg, transparent calc(100% - 150px), rgba(94, 246, 255, 0.16) calc(100% - 6px), rgba(94, 246, 255, 0.7) calc(100% - 5px) calc(100% - 3px), #fcee0a calc(100% - 3px));
+    }
+    :root[data-session-status] #mapwrap #space::after { animation: svb-cp77-mapfocus 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
   }
 }
 

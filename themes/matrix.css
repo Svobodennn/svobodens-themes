@@ -1,15 +1,17 @@
-/* Matrix (svoboden-matrix): what its colours alone can't give. Every rule in the two gates below applies only while
-   Matrix is the theme (its tokens set --theme-id: svoboden-matrix on :root), so the other themes look as they did; the
-   orbit map is left as it is. The one rule set outside the gates is this theme's own card on the theme screen (end of
-   the file). The rain is an original recreation: its tiles are drawn by scripts/make-matrix-rain.mjs (node, no
-   dependencies), which rewrites the blocks between rain:begin/rain:end and card:begin/card:end.
+/* Matrix (svoboden-matrix): what its colours alone can't give. Every rule in the gates below applies only while Matrix
+   is the theme (its tokens set --theme-id: svoboden-matrix on :root), so the other themes look as they did; the friend
+   chat and the orbit map have gates of their own (the last three). The one rule set outside the gates is this theme's
+   own card on the theme screen (end of the file). The rain is an original recreation: its tiles are drawn by
+   scripts/make-matrix-rain.mjs (node, no dependencies), which rewrites the blocks between rain:begin/rain:end and
+   card:begin/card:end.
 
    Two gates, because of WebKit: on a live theme switch it re-resolves an unnamed @container style() for elements but
    not for pseudo-elements (theirs is their own element, read from stale style), so a pseudo-element would stay after
    the theme goes. Pseudo-element rules therefore sit in a gate named after <html> (svb-root), which updates at once;
    element rules stay in the unnamed gate, where #mapwrap's reset below still keeps them out of the orbit map. */
 
-/* the orbit map keeps its own look; <html> is the named container the pseudo-element gate reads */
+/* the unnamed gates stay out of the orbit map (its own gate, the last, themes it); <html> is the named container the
+   other gates read */
 #mapwrap { --theme-id: none; }
 html { container-name: svb-root; }
 
@@ -220,6 +222,96 @@ html { container-name: svb-root; }
       7.5%, 100% { opacity: 0; transform: none; clip-path: none; }
     }
     @keyframes svb-mx-ring { 0%, 50%, 100% { opacity: 0; } 8%, 34% { opacity: 1; } 21% { opacity: 0.15; } }
+  }
+}
+
+/* ===== the friend chat (the notices page's chat panel, messages.js frameHTML, paint and paintList): the operator's
+   terminal. Lines, not bubbles, green on a black screen: the caller's in phosphor, yours brighter, each hung on its
+   prompt; a block cursor at the empty prompt; the CRT ring of the notices, held steady. The presence dots, the unread
+   counts, a failed send and "not friends anymore" keep the app's colours. ===== */
+@container style(--theme-id: svoboden-matrix) {
+  #chatwin .mb-list { background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 3px), rgba(0, 2, 0, 0.6); }
+  #chatwin :is(.mb-sub, .mb-day, .mb-empty, .mb-msg:not(.failed) .t) { color: #427f36; }
+  #chatwin .mb-msg .b { position: relative; border-color: transparent; border-radius: 0; background: none; color: #89f76e; text-shadow: 0 0 6px rgba(137, 247, 110, 0.45); }
+  #chatwin .mb-msg.mine .b { color: #c1ff75; text-shadow: 0 0 8px rgba(193, 255, 117, 0.65); }
+  #chatwin .mb-msg.failed .b { border-color: var(--red); }
+  #chatwin .mb-input { border-radius: 2px; border-color: rgba(137, 247, 110, 0.35); background: rgba(0, 3, 1, 0.85); }
+  #chatwin .mb-input:focus-within { border-color: #c1ff75; box-shadow: 0 0 14px rgba(193, 255, 117, 0.3); }
+  #chatwin .mb-input .pr { position: relative; }
+  /* while the line is empty the block cursor (below) stands in for the caret; typing brings the caret back */
+  #chatwin .mb-input textarea { color: #c1ff75; caret-color: #c1ff75; }
+  #chatwin .mb-input textarea:placeholder-shown { caret-color: transparent; }
+  #chatwin .mb-input .send { border-radius: 2px; background: transparent; box-shadow: inset 0 0 0 1px rgba(193, 255, 117, 0.6); color: #c1ff75; text-shadow: 0 0 6px rgba(193, 255, 117, 0.6); }
+  #chatwin .mb-input .send:not(:disabled):hover { background: rgba(193, 255, 117, 0.16); }
+  #chatwin :is(.mb-switch button, .mb-more) { border-radius: 2px; border-color: rgba(137, 247, 110, 0.35); }
+}
+@container svb-root style(--theme-id: svoboden-matrix) {
+  /* the CRT ring round the chat, steady (the notices ring it as they come in) */
+  #chatwin .mb.chat::before { opacity: 0.35; }
+  /* each line hung on its prompt, in the line's own margin: the caller's ">", yours "$", as at the input */
+  #chatwin .mb-msg .b::before { content: ">"; position: absolute; left: 0; top: 6px; color: #427f36; text-shadow: none; }
+  #chatwin .mb-msg.mine .b::before { content: "$"; color: #89f76e; }
+  #chatwin .mb-day::before { content: "-- "; }
+  #chatwin .mb-day::after { content: " --"; }
+  /* nothing said yet: the operator knocks */
+  #chatwin .mb-empty::before { content: "knock, knock."; display: block; margin-bottom: 8px; color: #89f76e; text-shadow: 0 0 8px rgba(137, 247, 110, 0.5); }
+  /* the block cursor, in the gap after the empty prompt */
+  #chatwin .mb-input:has(textarea:placeholder-shown:not(:disabled)) .pr::after {
+    content: ""; position: absolute; left: calc(100% + 1px); top: 4px; width: 6px; height: 13px; background: #c1ff75; box-shadow: 0 0 6px rgba(193, 255, 117, 0.7);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    #chatwin .mb-input:has(textarea:placeholder-shown:not(:disabled)) .pr::after { animation: svb-mx-blink 1.06s step-end infinite; }
+  }
+  html.behind #chatwin .pr::after { animation-play-state: paused !important; }
+}
+
+/* ===== the orbit map, on the operator's green screen. The map keeps the default theme's tokens (Themes.swift sets them
+   again on #mapwrap) and the unnamed gate is closed there, so this gate is named too, element rules and all, every
+   selector starting at #mapwrap (a hook on :root may come before it), and it names the theme's colours. The idle
+   screensaver (#top::after above) already covers the map. ===== */
+@container svb-root style(--theme-id: svoboden-matrix) {
+  /* green phosphor: greys and whites take the screen's green, the four status colours keep their hue (needs you stays
+     red, and no two come closer than before). The legend's keys and the minimap take the same grade, so they still
+     match. One filter, never animated */
+  #mapwrap :is(#space > canvas, #minimap, .legend i) { filter: hue-rotate(-70deg) sepia(0.4) hue-rotate(70deg) saturate(1.8) contrast(1.15); }
+  /* the screen's glass sits between the picture and the labels, so the labels stay on top as they were */
+  #mapwrap #space { isolation: isolate; }
+  #mapwrap #space > .labels { z-index: 2; }
+  #mapwrap #space::before, #mapwrap #space::after { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  /* the CRT: dark rows between the phosphor's lines, the glass glowing green toward its rim */
+  #mapwrap #space::after {
+    content: "";
+    background: repeating-linear-gradient(0deg, rgba(0, 8, 0, 0.3) 0 1px, transparent 1px 3px), radial-gradient(ellipse 80% 75% at 50% 50%, transparent 55%, rgba(65, 255, 90, 0.08));
+    box-shadow: inset 0 0 0 1px rgba(137, 247, 110, 0.14), inset 0 0 36px rgba(65, 255, 90, 0.08);
+  }
+  /* the map's own tag, readouts, labels, buttons and minimap in phosphor */
+  #mapwrap .maptag span { background: #c1ff75; color: #000100; box-shadow: 0 0 10px rgba(193, 255, 117, 0.3); }
+  #mapwrap :is(.maptag em, .legend, #pwr, .corel, #viewctl button.off) { color: #427f36; }
+  #mapwrap .legend .hint { color: #2f6b35; }
+  #mapwrap .sl { color: rgba(137, 247, 110, 0.92); }
+  #mapwrap #viewctl button { border-color: rgba(137, 247, 110, 0.35); color: #89f76e; background: rgba(1, 4, 1, 0.85); }
+  #mapwrap #viewctl button:hover { border-color: #c1ff75; color: #c1ff75; box-shadow: 0 0 8px rgba(193, 255, 117, 0.35); }
+  #mapwrap #minimap { border-color: rgba(137, 247, 110, 0.35); }
+  #mapwrap :is(#tip, #pwr-tip) { border-color: rgba(193, 255, 117, 0.6); box-shadow: 0 0 18px rgba(193, 255, 117, 0.22); }
+  #mapwrap .cine-tag { border-color: rgba(137, 247, 110, 0.35); color: #89f76e; }
+
+  /* power save (the map at 30 fps): the grade and the glass stand down, a pass fewer in every frame */
+  #mapwrap:has(> #pwr.on) :is(#space > canvas, #minimap, .legend i) { filter: none; }
+  #mapwrap:has(> #pwr.on) #space::after { content: none; }
+
+  /* hooks: deja vu (data-clash) jolts the map with the rest of the dashboard, the same jolt twice; a run of good results
+     (data-streak-milestone) sends the wave of code down the map too, glyphs lit in a band under the glass. With no hooks
+     (a stock app) the attributes never come and nothing moves */
+  @media (prefers-reduced-motion: no-preference) {
+    :root[data-clash] #mapwrap #space { animation: svb-mx-jolt 0.42s steps(1, end); }
+    :root[data-streak-milestone] #mapwrap #space::before {
+      content: ""; opacity: 0.8; transform: translateY(-100%);
+      background: var(--svb-mx-grid) 0 0 / var(--svb-mx-grid-size), linear-gradient(transparent calc(100% - 170px), rgba(23, 97, 5, 0.7) calc(100% - 90px), #89f76e calc(100% - 12px), #c1ff75);
+      -webkit-mask: linear-gradient(transparent calc(100% - 170px), #000 calc(100% - 150px));
+      mask: linear-gradient(transparent calc(100% - 170px), #000 calc(100% - 150px));
+      animation: svb-mx-mapflow 1.5s cubic-bezier(0.3, 0, 0.7, 1) both;
+    }
+    @keyframes svb-mx-mapflow { 0% { transform: translateY(-100%); } 85% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(170px); visibility: hidden; } }
   }
 }
 
