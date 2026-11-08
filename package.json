@@ -1,0 +1,27 @@
+{
+  "name": "svobodens-themes",
+  "displayName": "Svoboden's Themes",
+  "description": "Colour themes for Atalay's Terminal.",
+  "version": "0.0.1",
+  "publisher": "svoboden",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "atalay-terminal": ">=0.16.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "theme",
+    "color-theme",
+    "dark"
+  ],
+  "contributes": {
+    "themes": []
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test"
+  }
+}

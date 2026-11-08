@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atalay's Terminal colour theme",
+  "description": "One theme in the app's own format (ThemeSpec in app/Sources/AtalayTerminal/Themes.swift, 0.16.0 and later). The app makes the rest of its look from these colours. scripts/check.mjs reads its colour rules from this file.",
+  "type": "object",
+  "required": ["id", "name", "bg", "fg", "cursor", "selection", "accent", "ansi"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string", "description": "This schema, for editors: \"../schemas/theme.schema.json\". The app ignores it." },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique among every theme the app has. The app saves the chosen theme by it, and the leaderboard shows someone's card by it."
+    },
+    "name": { "type": "string", "pattern": "\\S", "description": "The name on the theme screen." },
+    "bg": { "$ref": "#/definitions/color", "description": "The terminals' background. The app's surfaces are this colour darkened." },
+    "fg": { "$ref": "#/definitions/color", "description": "The terminals' text. The interface's text shades lie between this and bg." },
+    "cursor": { "$ref": "#/definitions/color", "description": "The terminals' cursor; the text under it takes bg." },
+    "selection": { "$ref": "#/definitions/color", "description": "Selected text's background in the terminals and the code views." },
+    "accent": {
+      "$ref": "#/definitions/color",
+      "description": "Lines, highlights, buttons and the 'working' status. Keep it away from red (ansi 1 and 9): 'needs you' is drawn in red."
+    },
+    "ansi": {
+      "type": "array",
+      "minItems": 16,
+      "maxItems": 16,
+      "items": { "$ref": "#/definitions/color" },
+      "description": "The 16 ANSI colours: normal 0-7, bright 8-15. Red (1, 9), green (2, 10), yellow (3), blue (4, 12), magenta (5, 13) and cyan (6) also colour the interface; bright red is 'needs you'."
+    },
+    "ui": {
+      "type": "object",
+      "description": "Exact values for the pages' tokens. Colour tokens the app would otherwise make from the colours above (\"--accent-soft\", \"--warn\"…) take #rrggbb, their \"-rgb\" twins take \"r, g, b\": the native views read them too and draw one they can't read in magenta. Other tokens are free text: \"--font\" sets the interface's font unless one is picked in Settings, \"--theme-id\" names the theme to its own CSS.",
+      "propertyNames": { "pattern": "^--[a-z0-9]+(-[a-z0-9]+)*$" },
+      "properties": {
+        "--accent": { "$ref": "#/definitions/color" },
+        "--accent-pale": { "$ref": "#/definitions/color" },
+        "--accent-soft": { "$ref": "#/definitions/color" },
+        "--amber": { "$ref": "#/definitions/color" },
+        "--bg": { "$ref": "#/definitions/color" },
+        "--bloom": { "$ref": "#/definitions/color" },
+        "--blue": { "$ref": "#/definitions/color" },
+        "--caret-text": { "$ref": "#/definitions/color" },
+        "--code-bg": { "$ref": "#/definitions/color" },
+        "--code-cursor": { "$ref": "#/definitions/color" },
+        "--code-fg": { "$ref": "#/definitions/color" },
+        "--cyan": { "$ref": "#/definitions/color" },
+        "--dim": { "$ref": "#/definitions/color" },
+        "--dim2": { "$ref": "#/definitions/color" },
+        "--ended": { "$ref": "#/definitions/color" },
+        "--ended-deep": { "$ref": "#/definitions/color" },
+        "--faint": { "$ref": "#/definitions/color" },
+        "--green": { "$ref": "#/definitions/color" },
+        "--hi": { "$ref": "#/definitions/color" },
+        "--idle-deep": { "$ref": "#/definitions/color" },
+        "--ink": { "$ref": "#/definitions/color" },
+        "--lavender": { "$ref": "#/definitions/color" },
+        "--lime": { "$ref": "#/definitions/color" },
+        "--magenta": { "$ref": "#/definitions/color" },
+        "--orange": { "$ref": "#/definitions/color" },
+        "--red": { "$ref": "#/definitions/color" },
+        "--red-soft": { "$ref": "#/definitions/color" },
+        "--selection": { "$ref": "#/definitions/color" },
+        "--selection-text": { "$ref": "#/definitions/color" },
+        "--sky": { "$ref": "#/definitions/color" },
+        "--title": { "$ref": "#/definitions/color" },
+        "--txt": { "$ref": "#/definitions/color" },
+        "--txt2": { "$ref": "#/definitions/color" },
+        "--txt3": { "$ref": "#/definitions/color" },
+        "--violet": { "$ref": "#/definitions/color" },
+        "--warn": { "$ref": "#/definitions/color" }
+      },
+      "patternProperties": {
+        "^--a([0-9]|1[0-5])$": { "$ref": "#/definitions/color" },
+        "^--hue[0-9]$": { "$ref": "#/definitions/color" },
+        "-rgb$": { "$ref": "#/definitions/triplet" }
+      },
+      "additionalProperties": { "type": "string" }
+    },
+    "glow": {
+      "type": "boolean",
+      "description": "Neon, as SynthWave '84's: the pages' text glows in its own colour with an accent halo, and the terminals, the chats list and the chat windows' headers bloom."
+    }
+  },
+  "definitions": {
+    "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "triplet": {
+      "type": "string",
+      "pattern": "^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\s*,\\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\s*,\\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$"
+    }
+  }
+}
