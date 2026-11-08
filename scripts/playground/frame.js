@@ -6,6 +6,7 @@
 (() => {
   const FRAME = '__FRAME__';
   const ROLE = '__ROLE__';
+  const FRIEND = /*PG:FRIEND*/null;
   const pg = () => window.parent && window.parent.PG;
   const report = (msg) => {
     try {
@@ -19,12 +20,17 @@
     report(args.map((a) => (a && a.message) || a).join(' '));
     error(...args);
   };
-  if (ROLE) window.__MESSAGES_ROLE__ = ROLE;
+  // Swift's first script in a message panel (Messages.swift): its role, and the one friend a chat panel is for.
+  if (ROLE) {
+    window.__MESSAGES_ROLE__ = ROLE;
+    window.__MESSAGES_FRIEND__ = FRIEND;
+  }
   // Answers come as copies made in this frame, as the app's would be: plain data of this page's own.
   const handler = (name) => ({
     postMessage: (msg) => {
+      // An answer can take its time (a message still sending): a promise, settled as it comes.
       const r = pg().bridge(FRAME, name, JSON.parse(JSON.stringify(msg ?? null)));
-      return Promise.resolve(r === undefined ? undefined : JSON.parse(JSON.stringify(r)));
+      return Promise.resolve(r).then((v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v))));
     },
   });
   const handlers = {};

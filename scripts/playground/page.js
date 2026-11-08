@@ -48,6 +48,8 @@
   // ---------- the screen ----------
   const SIZES = ['1440x900', '1280x800', '1680x1050', '1920x1080', '1100x760', '900x700'];
   let size = SIZES.includes(store.get('size')) ? store.get('size') : SIZES[0];
+  let scale = 1;
+  PG.scale = () => scale;
   PG.screen = () => {
     const [w, h] = size.split('x').map(Number);
     return { w, h };
@@ -58,6 +60,7 @@
     const s = Math.min((stage.clientWidth - 32) / w, (stage.clientHeight - 32) / h, 1);
     Object.assign($('pg-screen').style, { width: `${w}px`, height: `${h}px`, transform: `scale(${s})` });
     Object.assign($('pg-fit').style, { width: `${w * s}px`, height: `${h * s}px` });
+    scale = s;
     $('pg-scale').textContent = `${size.replace('x', ' × ')} at ${Math.round(s * 100)}%`;
     PG.replaceNotices?.();
   }
@@ -112,7 +115,7 @@
   const frames = {};
   PG.frames = frames;
   const ready = {};
-  function load(name) {
+  function load(name, friend = null) {
     const el = $(`pg-${name}`);
     if (name === 'notices') {
       fired = false;
@@ -134,7 +137,9 @@
         resolve(f);
       };
     });
-    el.srcdoc = D.frames[name].replace(D.cssSlot, () => JSON.stringify(cssFor(current)).replace(/</g, '\\u003c'));
+    el.srcdoc = D.frames[name]
+      .replace(D.cssSlot, () => JSON.stringify(cssFor(current)).replace(/</g, '\\u003c'))
+      .replace(D.friendSlot, () => JSON.stringify(friend).replace(/</g, '\\u003c'));
     return ready[name];
   }
   const loadAll = () => Promise.all(['dash', 'notices', 'overlay'].map(load));
@@ -344,6 +349,7 @@
       f.win.__messages.focus(front);
     },
     overlay() {},
+    chat() {},
   };
   let windowState = 'front';
   // app.js setVisibility(): behind other windows the dashboard's decorations rest; hidden, they stop.
@@ -423,6 +429,58 @@
       N().skip();
       frames.notices.win.dispatchEvent(new (frames.notices.win.KeyboardEvent)('keydown', { key: 'Escape' }));
     },
+  };
+
+  // ---------- a friend's chat: messages.html as a chat panel, its own code (frameHTML, paint, paintList, send) ----------
+  // Swift opens a friend's chat as a panel of its own (Messages.swift openChat: MessagePanel(.chat, friend:), then
+  // __messages.open(id)); here each chat opened is that panel new, for that friend.
+  const C = () => frames.chat && frames.chat.win && frames.chat.win.__messages;
+  let chatWith = null;
+  async function openChat(id) {
+    chatWith = id;
+    await load('chat', id);
+    await C().open(id);
+  }
+  PG.openChat = (id) => openChat(id).catch((e) => PG.frameError('chat', e.message));
+  // A live event goes to the notices and to every open chat (Swift: notices.push, pushToChats).
+  function push(ev) {
+    N().event(ev);
+    C()?.event(ev);
+  }
+  // Typed into the chat's own box and sent with ↩, as you would.
+  function type(text) {
+    const w = frames.chat.win;
+    const ta = frames.chat.doc.querySelector('.mb-input textarea');
+    ta.value = text;
+    ta.dispatchEvent(new w.Event('input', { bubbles: true }));
+    ta.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+  }
+  const openNow = () => (C() && frames.chat.doc.querySelector('#chatwin .mb.open') ? Promise.resolve() : openChat('f-vee'));
+  const CHAT = {
+    // vee: online, yesterday and today, earlier messages to load
+    open: () => openChat('f-vee'),
+    // jackie: no messages yet
+    empty: () => openChat('f-jackie'),
+    // panam: the chat open, then they remove you (the unfriended event)
+    gone: async () => {
+      await openChat('f-panam');
+      push({ type: 'unfriended', id: 'f-panam' });
+    },
+    // two of yours: one the server hasn't answered yet, one that couldn't go (offline: click it to send again)
+    pending: async () => {
+      await openNow();
+      PG.nextSends.push('hold', 'fail');
+      type('pushing the fix now');
+      await wait(60);
+      type('sent you the table');
+    },
+    // theirs, arriving while it's open
+    incoming: async () => {
+      await openNow();
+      const f = PG.mock.friends.find((x) => x.id === chatWith) || PG.mock.friends[0];
+      push({ type: 'message', with: f.id, from: f, message: { id: Date.now(), body: 'one more thing: the legend keys too', at: new Date().toISOString(), mine: false } });
+    },
+    close: () => C()?.close(),
   };
 
   // ---------- the overlay: overlay.js, shortcuts.js and picker.js themselves ----------
@@ -599,6 +657,14 @@
       ['notice-badge', 'badge reveal', NOTICES.badge],
       ['notice-close', 'close it', NOTICES.close],
     ]],
+    ['Friend chat', [
+      ['chat-open', 'open a chat', CHAT.open],
+      ['chat-empty', 'an empty chat', CHAT.empty],
+      ['chat-gone', 'not friends anymore', CHAT.gone],
+      ['chat-pending', 'sending + failed', CHAT.pending],
+      ['chat-incoming', 'a message comes in', CHAT.incoming],
+      ['chat-close', 'close the chat', CHAT.close],
+    ]],
     ['Overlay', [
       ['overlay-pie', 'shortcut pie', pie],
       ['overlay-picker', 'folder picker', picker],
@@ -731,6 +797,10 @@
     $('pg-errors').classList.remove('bad');
     showOverlay(false);
     $('pg-notices').classList.add('off');
+    // A chat open before goes with the reload, as its panel would with the app.
+    delete frames.chat;
+    $('pg-chat').classList.add('off');
+    PG.chatFrost(false, 0);
     await loadAll();
     PG.log(`frames loaded in ${byId.get(current).name}`);
   }

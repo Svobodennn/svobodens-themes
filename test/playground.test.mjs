@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { assembleCss, codicons, CSS_SLOT, FRAMES, frameDoc, OWN_REFRESH, pageParts, swiftTheme } from '../scripts/playground.mjs'
+import { readFileSync } from 'node:fs'
+import { assembleCss, codicons, CSS_SLOT, FRAMES, frameDoc, FRIEND_SLOT, OWN_REFRESH, pageParts, swiftTheme } from '../scripts/playground.mjs'
 import { themeCss, UI_FONTS } from '../scripts/derive.mjs'
 
 // ThemeStore.script as Atalay's Terminal 0.19.0 has it, and as the theme hooks change it (Themes.swift).
@@ -118,4 +119,18 @@ test("the activity bar's icons come from git.js's code point table", () => {
   const cp = codicons("  const CP = {\n    'chevron-down': 0xeab4, repo: 0xea62,\n    files: 0xeaf0, 'symbol-color': 0xeb5c,\n  };")
   assert.deepEqual(cp, { 'chevron-down': 0xeab4, repo: 0xea62, files: 0xeaf0, 'symbol-color': 0xeb5c })
   assert.deepEqual(codicons('no table'), {})
+})
+
+test("a friend's chat is messages.html as a chat panel, its friend filled into the first script when it opens", () => {
+  const chat = FRAMES.find((f) => f.name === 'chat')
+  assert.deepEqual([chat.page, chat.role, chat.run], ['messages.html', 'chat', 'all'])
+  const prelude = readFileSync(new URL('../scripts/playground/frame.js', import.meta.url), 'utf8')
+  const doc = frameDoc({ frame: chat, parts: pageParts(PAGE, 'pack'), theme: '', ownRefresh: false, pack: 'pack', sheets: [], prelude, postlude: '' })
+  assert.ok(doc.includes(`const FRIEND = ${FRIEND_SLOT};`) && doc.includes("const ROLE = \"chat\";"))
+  // As Swift's first script: the role and the friend, before anything of the page runs.
+  const win = {}
+  const first = doc.slice(doc.indexOf('(() => {'), doc.indexOf('})();') + 5).replace(FRIEND_SLOT, '"f-vee"')
+  new Function('window', 'addEventListener', 'console', first)(win, () => {}, { error() {} })
+  assert.equal(win.__MESSAGES_ROLE__, 'chat')
+  assert.equal(win.__MESSAGES_FRIEND__, 'f-vee')
 })

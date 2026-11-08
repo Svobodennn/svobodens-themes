@@ -25,11 +25,45 @@
     if (method === 'GET' && path === 'v1/notifications') return { notifications: notes, unread: notes.filter((n) => !n.read).length };
     const accept = path.match(/^v1\/friends\/requests\/([^/]+)\/accept$/);
     if (accept) return { friend: { id: `f-${accept[1]}`, name: 'river', tag: 451, presence: 'online', xp: { level: 9 } } };
-    if (method === 'GET' && path.startsWith('v1/messages/')) {
-      return { messages: [{ id: 1, body: 'job is on tonight. you in?', at: now - 8 * min, mine: false }, { id: 2, body: 'always.', at: now - 7 * min, mine: true }], more: false };
-    }
-    if (method === 'POST' && path === 'v1/messages') return { message: { id: Date.now(), body: body && body.body, at: new Date().toISOString(), mine: true } };
+    const history = path.match(/^v1\/messages\/([^/?]+)(?:\?before=(\d+))?$/);
+    if (method === 'GET' && history) return conversation(history[1], history[2]);
+    if (method === 'POST' && path === 'v1/messages') return sent(body);
     return {};
+  }
+
+  // ---------- conversations (GET v1/messages/<friend>): yesterday and today with vee, older ones on "earlier" ----------
+  const dayStart = new Date(new Date().setHours(0, 0, 0, 0)).getTime();
+  const at = (t) => new Date(t).toISOString();
+  // Today's lines a few minutes apart, never before midnight.
+  const today = (ago) => at(Math.max(dayStart + 60_000, now - ago * min));
+  const yesterday = (h, m) => at(dayStart - 86_400_000 + (h * 60 + m) * min);
+  const line = (id, mine, body, t) => ({ id, body, at: t, mine });
+  const CHATS = {
+    'f-vee': [
+      line(11, false, 'build is green on my side, can you pull?', yesterday(23, 41)),
+      line(12, true, 'pulling now', yesterday(23, 43)),
+      line(13, false, 'and the orbit map looks wild in your theme', yesterday(23, 50)),
+      line(14, false, 'what did you change?', today(52)),
+      line(15, true, 'a colour grade on the canvas\nthe status colours kept apart', today(49)),
+      line(16, false, 'needs-you still reads red?', today(47)),
+      line(17, true, 'yes, checked every hex', today(46)),
+      line(18, false, 'ship it', today(9)),
+    ],
+    'f-panam': [line(31, false, 'see you in the badlands', today(95)), line(32, true, 'wait', today(94))],
+  };
+  const EARLIER = { 'f-vee': [line(1, false, 'job is on tonight. you in?', at(dayStart - 3 * 86_400_000 + 21 * 60 * min)), line(2, true, 'always.', at(dayStart - 3 * 86_400_000 + 21 * 60 * min + 2 * min))] };
+  function conversation(id, before) {
+    if (before) return { messages: EARLIER[id] || [], more: false };
+    return { messages: CHATS[id] || [], more: !!EARLIER[id] };
+  }
+  // POST v1/messages: delivered at once, unless the playground asked for the next one to hang (still sending) or fail.
+  PG.nextSends = [];
+  function sent(body) {
+    const how = PG.nextSends.shift();
+    const message = { id: Date.now(), body: body && body.body, at: new Date().toISOString(), mine: true };
+    if (how === 'fail') return { error: 'offline' };
+    if (how === 'hold') return new Promise((resolve) => setTimeout(() => resolve({ message }), 45_000));
+    return { message };
   }
 
   // ---------- the overlay handler: shortcuts and the folder picker (api.js) ----------
@@ -79,9 +113,22 @@
     return undefined;
   }
 
+  // ---------- the messages handler of a friend's chat panel (Messages.swift: layout, drag, showing, openChat) ----------
+  function chat(m) {
+    if (m.type === 'layout') return void PG.placeChat(m);
+    if (m.type === 'leaving') return void PG.chatFrost(false, 0.18);
+    if (m.type === 'drag') return void PG.dragChat(m.dx, m.dy);
+    // The friends whose chat is open get no pop-ups (Swift tells the notices: tellShowing).
+    if (m.type === 'showing') return void PG.frames.notices?.win?.__messages?.showing(m.id ? [m.id] : []);
+    if (m.type === 'openChat') return void PG.openChat(m.id);
+    if (m.type !== 'ready' && m.type !== 'dragEnd') PG.log(`chat → ${m.type}${m.msg ? `: ${m.msg}` : ''}`);
+    return undefined;
+  }
+
   PG.bridge = (frame, name, m) => {
     if (!m || typeof m !== 'object') return undefined;
     if (name === 'cloud' && m.type === 'social') return social(m.method, m.path, m.body);
+    if (name === 'messages' && frame === 'chat') return chat(m);
     if (name === 'messages') return messages(m);
     if (name === 'overlay') return overlay(m);
     PG.log(`${frame} → ${name}.${m.type}`);
@@ -125,4 +172,50 @@
     g.classList.toggle('on', on);
   }
   PG.frost = frost;
+})();
+
+// ---------- where a friend's chat goes (Messages.swift placeChat + whole) ----------
+// The first time, the middle of the screen; while it's up, its top-left corner stays put as it resizes; always wholly
+// on the screen. The same frosted glass behind its box.
+(() => {
+  const PG = window.PG;
+  const el = () => document.getElementById('pg-chat');
+  let rect = null;
+  function whole(r) {
+    const S = PG.screen();
+    const w = Math.min(r.w, S.w), h = Math.min(r.h, S.h);
+    return { x: Math.min(Math.max(r.x, 0), S.w - w), y: Math.min(Math.max(r.y, 0), S.h - h), w, h };
+  }
+  function put(r) {
+    rect = whole(r);
+    Object.assign(el().style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.w}px`, height: `${rect.h}px` });
+  }
+  function placeChat({ w, h }) {
+    const f = el();
+    if (!(w >= 1 && h >= 1)) {
+      chatFrost(false, 0);
+      f.classList.add('off');
+      rect = null;
+      return;
+    }
+    const S = PG.screen();
+    put(rect && !f.classList.contains('off') ? { x: rect.x, y: rect.y, w, h } : { x: Math.round(S.w / 2 - w / 2), y: Math.round(S.h / 2 - h / 2), w, h });
+    f.classList.remove('off');
+    chatFrost(true, 0.3);
+  }
+  // A drag on its header moves the panel by the pointer's travel on the real screen (the playground's is scaled).
+  function dragChat(dx, dy) {
+    if (!rect) return;
+    const s = PG.scale();
+    put({ ...rect, x: rect.x + dx / s, y: rect.y + dy / s });
+    chatFrost(true, 0);
+  }
+  function chatFrost(on, seconds) {
+    const g = document.getElementById('pg-chat-frost');
+    if (rect) Object.assign(g.style, { left: `${rect.x + 8}px`, top: `${rect.y + 8}px`, width: `${Math.max(0, rect.w - 16)}px`, height: `${Math.max(0, rect.h - 16)}px` });
+    g.style.transitionDuration = `${seconds}s`;
+    g.classList.toggle('on', on);
+  }
+  PG.chatRect = () => rect;
+  Object.assign(PG, { placeChat, dragChat, chatFrost });
 })();

@@ -24,11 +24,15 @@ import { themeCss, tokensOf, UI_FONTS } from './derive.mjs'
 export const FILE = 'svobodens-playground.html'
 /** Where the theme's style sheet goes in the theme script: a JS string, valid even before it's filled in. */
 export const CSS_SLOT = '/*PG:CSS*/""'
+/** Where a chat panel's friend goes in the first script (Swift's __MESSAGES_FRIEND__): JS, null until filled in. */
+export const FRIEND_SLOT = '/*PG:FRIEND*/null'
 /** The frames: their page, and which of its scripts run (all, or the dashboard's self-contained few). */
 export const FRAMES = [
   { name: 'dash', page: 'index.html', run: ['hooks.js', 'xp.js', 'social.js', 'sfx.js', 'layout.js'] },
   { name: 'notices', page: 'messages.html', run: 'all', role: 'notices' },
   { name: 'overlay', page: 'overlay.html', run: 'all' },
+  // A friend's chat: messages.html again, as its own panel (Messages.swift MessagePanel(.chat, friend:)).
+  { name: 'chat', page: 'messages.html', run: 'all', role: 'chat' },
 ]
 // The app's theme script before the theme hooks (0.19.0): no refresh of the pseudo-elements on a switch.
 const SCRIPT_0190 = `/* atalay-theme */(() => {
@@ -177,6 +181,7 @@ export function build(target, root = fileURLToPath(new URL('..', import.meta.url
     hooks: existsSync(join(web, 'hooks.js')),
     codicons: existsSync(gitJs) ? codicons(read(gitJs)) : {},
     cssSlot: CSS_SLOT,
+    friendSlot: FRIEND_SLOT,
     frames,
   }
   const page = read(here('./playground/page.html'))
