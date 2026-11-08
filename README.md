@@ -24,6 +24,9 @@ To try them now in a source checkout of the app:
 npm run preview -- <atalay-terminal checkout>   # then start app/dev.sh there
 ```
 
+It edits that checkout's `app/Resources/web` (the themes file and three pages) and adds a folder there;
+`git checkout -- app/Resources/web` and deleting `app/Resources/web/themes/svobodens-themes` undo it.
+
 ## Making a theme
 
 A theme is one JSON file in `themes/`, in the app's own theme format: the terminal's background, text, cursor and
@@ -31,16 +34,37 @@ selection, an accent, and the 16 ANSI colours. The app makes the rest of its loo
 in `schemas/theme.schema.json`; start the file with `"$schema": "../schemas/theme.schema.json"` and editors check it as
 you type.
 
-A theme can also have a style sheet (`css` in its `package.json` entry), as the app's own MUR47 theme does. Its rules
-sit inside `@container style(--theme-id: <id>)`, and the theme sets that id in `ui`, so they apply only while the theme
-is chosen.
+A theme can also have a style sheet, as the app's own MUR47 theme does (the app links MUR47's itself; `css` in a
+`package.json` entry is this pack's field, read by its checker and preview script). The theme sets its id in `ui`
+(`"--theme-id"`), and every rule waits for it:
+
+- element rules inside `@container style(--theme-id: <id>)`;
+- `::before` / `::after` rules inside `@container svb-root style(--theme-id: <id>)`, with `html { container-name:
+  svb-root }` in the sheet. WebKit checks an unnamed query on a pseudo-element against its element's old style, so
+  without the name a theme's decorations stay on screen after another theme is chosen.
 
 List the files under `contributes.themes` in `package.json`, then check the pack:
 
 ```sh
-npm run check   # package.json, every theme, its style sheet and fonts
-npm test        # the checker's own tests
+npm run check   # package.json, every theme, its sheet's gate, and the fonts it loads
+npm test        # the checker's and preview script's tests
 ```
+
+## Terminal extras
+
+`extras/` takes each theme into the shell itself; `<slug>` below is `cyberpunk-2077`, `matrix` or `modern-warfare-2`.
+`node extras/make-extras.mjs` builds them all from the theme files (and `npm test` fails if they fall behind). They
+print only ASCII, box drawing and single-width marks, so lines stay straight inside GNU screen.
+
+- **Starship prompt:** `export STARSHIP_CONFIG=/path/to/extras/<slug>/starship.toml`.
+- **Claude Code status line:** in `~/.claude/settings.json`, `"statusLine": { "type": "command", "command": "node
+  /path/to/extras/statusline/statusline.mjs --theme <slug>" }`. A RAM bar for the context window (Cyberpunk), the same
+  as falling katakana (Matrix), a killstreak of tool calls without an error (Modern Warfare 2).
+- **bat:** copy `extras/<slug>/bat.tmTheme` to `"$(bat --config-dir)/themes/svoboden-<slug>.tmTheme"`, run
+  `bat cache --build`, then `bat --theme svoboden-<slug>`.
+- **delta:** in `~/.gitconfig`, `[include] path = /path/to/extras/<slug>/delta.gitconfig`, then `features = <slug>` under
+  `[delta]` (it uses the bat theme above).
+- **eza:** save `extras/<slug>/eza.yml` as `theme.yml` in a folder and point `EZA_CONFIG_DIR` at it.
 
 ## Credits
 

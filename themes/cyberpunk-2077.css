@@ -9,16 +9,16 @@
 
 /* the orbit map keeps its own look */
 #mapwrap { --theme-id: none; }
+/* <html> by name, for the pseudo-elements' gate (the last block); the app names no containers */
+html { container-name: svb-root; }
 
+/* ===== Elements. An unnamed query, so #mapwrap's reset keeps everything in the map out. ===== */
 @container style(--theme-id: svoboden-cyberpunk-2077) {
-  /* HUD scanlines: the base lines, tinted Kiroshi cyan */
-  body::before { background: repeating-linear-gradient(0deg, rgba(94, 246, 255, 0.03) 0 1px, transparent 1px 3px); }
+  /* the drawings, once each: the yellow tab, the code matrix, a holocall's ringing level, a quickhack's RAM unit */
+  body { --svb-cp-strip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='6' viewBox='0 0 260 6'%3E%3Cpath d='M0 2H186L190 6H0Z' fill='%23fcee0a'/%3E%3Cpath d='M195 2H203L207 6H199Z M209 2H217L221 6H213Z M223 2H231L235 6H227Z' fill='%23fcee0a' fill-opacity='.75'/%3E%3C/svg%3E"); --svb-cp-matrix: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='196' viewBox='0 0 200 196'%3E%3Cpath d='M.5 .5H199.5V183.5L187.5 195.5H.5Z' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Cpath d='M.5 18.5H199.5' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Crect x='0' y='0' width='6' height='18' fill='%23dfff5e' fill-opacity='.1'/%3E%3Ctext x='12' y='13' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' letter-spacing='2' fill='%23dfff5e' fill-opacity='.11'%3ECODE MATRIX%3C/text%3E%3Ctext x='192' y='13' text-anchor='end' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%235ef6ff' fill-opacity='.1'%3E0x7A%3C/text%3E%3Crect x='104' y='30' width='30' height='136' fill='%23dfff5e' fill-opacity='.05'/%3E%3Crect x='21' y='39' width='16' height='12' fill='none' stroke='%23dfff5e' stroke-opacity='.07' stroke-dasharray='2 2'/%3E%3Ctext x='59' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='89' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='119' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3EE9%3C/text%3E%3Ctext x='149' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='179' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Crect x='21' y='61' width='16' height='12' fill='none' stroke='%23dfff5e' stroke-opacity='.07' stroke-dasharray='2 2'/%3E%3Ctext x='59' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EFF%3C/text%3E%3Ctext x='89' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Crect x='111' y='61' width='16' height='12' fill='none' stroke='%23dfff5e' stroke-opacity='.07' stroke-dasharray='2 2'/%3E%3Ctext x='149' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='179' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='29' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='59' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='89' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='119' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3E1C%3C/text%3E%3Ctext x='149' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='179' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EFF%3C/text%3E%3Ctext x='29' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='59' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='89' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='119' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3EFF%3C/text%3E%3Ctext x='149' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='179' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='29' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='59' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='89' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='119' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3E1C%3C/text%3E%3Ctext x='149' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='179' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='29' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='59' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='89' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EFF%3C/text%3E%3Ctext x='119' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3EBD%3C/text%3E%3Ctext x='149' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='179' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Crect x='14.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Ctext x='26.5' y='185.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%23dfff5e' fill-opacity='.1'%3E1C%3C/text%3E%3Crect x='43.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Ctext x='55.5' y='185.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%23dfff5e' fill-opacity='.1'%3EBD%3C/text%3E%3Crect x='72.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Ctext x='84.5' y='185.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%23dfff5e' fill-opacity='.1'%3E55%3C/text%3E%3Crect x='101.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08' stroke-dasharray='2 2'/%3E%3Crect x='130.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08' stroke-dasharray='2 2'/%3E%3Crect x='159.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08' stroke-dasharray='2 2'/%3E%3C/svg%3E"); --svb-cp-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='7' viewBox='0 0 40 7'%3E%3Cg fill='%235ef6ff'%3E%3Crect x='0' y='5' width='2' height='2'/%3E%3Crect x='3' y='3' width='2' height='4'/%3E%3Crect x='6' y='1' width='2' height='6'/%3E%3Crect x='9' y='4' width='2' height='3'/%3E%3Crect x='12' y='0' width='2' height='7'/%3E%3Crect x='15' y='2' width='2' height='5'/%3E%3Crect x='18' y='5' width='2' height='2'/%3E%3Crect x='21' y='1' width='2' height='6'/%3E%3Crect x='24' y='3' width='2' height='4'/%3E%3Crect x='27' y='0' width='2' height='7'/%3E%3Crect x='30' y='4' width='2' height='3'/%3E%3Crect x='33' y='2' width='2' height='5'/%3E%3Crect x='36' y='5' width='2' height='2'/%3E%3C/g%3E%3C/svg%3E"); --svb-cp-chip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Crect x='2' y='2' width='4' height='4' fill='none' stroke='%235ef6ff'/%3E%3Cpath d='M3.2 0V2M4.8 0V2M3.2 6V8M4.8 6V8M0 3.2H2M0 4.8H2M6 3.2H8M6 4.8H8' stroke='%235ef6ff' stroke-width='.8'/%3E%3C/svg%3E"); }
 
   /* top bar: the brand-yellow tab with an angled end and segment ticks, over a yellow rule along its foot */
-  #top {
-    border-bottom-color: rgba(var(--accent-rgb), 0.6);
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='6' viewBox='0 0 260 6'%3E%3Cpath d='M0 2H186L190 6H0Z' fill='%23fcee0a'/%3E%3Cpath d='M195 2H203L207 6H199Z M209 2H217L221 6H213Z M223 2H231L235 6H227Z' fill='%23fcee0a' fill-opacity='.75'/%3E%3C/svg%3E") left bottom / 260px 6px no-repeat, var(--panel);
-  }
+  #top { border-bottom-color: rgba(var(--accent-rgb), 0.6); background: var(--svb-cp-strip) left bottom / 260px 6px no-repeat, var(--panel); }
 
   /* UI type: Rajdhani for titles, uppercase and spaced; Orbitron for the small print */
   .tag, .brand .stack b { font-family: "Svb Rajdhani", var(--font); font-weight: 700; }
@@ -35,62 +35,66 @@
     clip-path: polygon(-1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% - 7px), calc(100% - 7px) calc(100% + 1px), -1px calc(100% + 1px));
   }
 
-  /* panel title bars: a faint HUD-cyan wash, the way the game lights a selected row */
-  .panel > header {
-    background: linear-gradient(90deg, rgba(var(--cyan-rgb), 0.08), transparent 70%);
-    border-bottom-color: rgba(var(--cyan-rgb), 0.2);
-  }
-  /* ...their readouts in Rajdhani's lighter cut, the game's secondary menu text */
+  /* panel title bars: a faint HUD-cyan wash, the way the game lights a selected row; readouts in Rajdhani's lighter cut */
+  .panel > header { background: linear-gradient(90deg, rgba(var(--cyan-rgb), 0.08), transparent 70%); border-bottom-color: rgba(var(--cyan-rgb), 0.2); }
   .panel > header .meta { font-family: "Svb Rajdhani", var(--font); font-weight: 500; font-size: 0.98em; letter-spacing: 0.08em; text-transform: uppercase; }
   .panel > header .meta button { letter-spacing: inherit; text-transform: inherit; }
 
-  /* dashboard panels: the menu frame's cut corner (45 degrees, bottom right), a slot in the left edge, a yellow edge mark under it */
-  :is(#right, #bottom) > .panel {
+  /* dashboard panels: the menu frame's cut corner (45 degrees, bottom right), a slot in the left edge, a yellow edge mark
+     under it. Not on a panel that's .hot: your.call's "needs you" halo pulses outside its box. */
+  :is(#right, #bottom) > .panel:not(.hot) {
     background:
       linear-gradient(rgba(var(--cyan-rgb), 0.5), rgba(var(--cyan-rgb), 0.5)) left 0 top 23px / 12px 1px no-repeat border-box,
       linear-gradient(rgba(var(--cyan-rgb), 0.5), rgba(var(--cyan-rgb), 0.5)) left 0 top 26px / 12px 1px no-repeat border-box,
       linear-gradient(var(--accent), var(--accent)) left 0 top 29px / 2px 12px no-repeat border-box, var(--panel);
     clip-path: polygon(-1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% - 15px), calc(100% - 15px) calc(100% + 1px), -1px calc(100% + 1px), -1px 26px, 11px 26px, 11px 24px, -1px 24px);
   }
-  /* ...a yellow corner piece rides the cut: along the foot, up the diagonal, up the side */
-  :is(#right, #bottom) > .panel::after {
-    right: -1px; bottom: -1px; width: 58px; height: 40px; border: 0;
-    background:
-      linear-gradient(to top left, transparent 50%, var(--accent) 50% calc(50% + 2px), transparent calc(50% + 2px)) right bottom / 14px 14px no-repeat,
-      linear-gradient(var(--accent), var(--accent)) left bottom / calc(100% - 13px) 2px no-repeat,
-      linear-gradient(var(--accent), var(--accent)) right top / 2px calc(100% - 13px) no-repeat;
-  }
-  /* ...and a HUD-cyan glint runs into the top right corner */
-  :is(#right, #bottom) > .panel::before {
-    top: -1px; left: auto; right: -1px; width: 38%; height: 2px; border: 0;
-    background: linear-gradient(90deg, transparent, rgba(var(--cyan-rgb), 0.75));
-  }
 
-  /* top-bar buttons: the cut-corner buttons of the game's site */
-  .topbtn {
+  /* top-bar buttons: the cut-corner buttons of the game's site (not "update": its glow pulses outside the box) */
+  .topbtn:not(.update) {
     clip-path: polygon(-1px -1px, calc(100% + 1px) -1px, calc(100% + 1px) calc(100% - 8px), calc(100% - 8px) calc(100% + 1px), -1px calc(100% + 1px));
     background-image: linear-gradient(to top left, transparent 50%, var(--line) 50% calc(50% + 1px), transparent calc(50% + 1px));
     background-size: 7px 7px; background-position: right bottom; background-repeat: no-repeat; background-origin: border-box;
   }
-  .topbtn:hover { background-image: linear-gradient(to top left, transparent 50%, var(--accent) 50% calc(50% + 1px), transparent calc(50% + 1px)); }
+  .topbtn:not(.update):hover { background-image: linear-gradient(to top left, transparent 50%, var(--accent) 50% calc(50% + 1px), transparent calc(50% + 1px)); }
 
-  /* breach protocol: a code matrix left on the wall behind the session cards, its live column lit */
-  #app::before {
-    content: ""; position: fixed; z-index: -1;
-    left: 80px; bottom: calc(62px + var(--lay-bottom, max(176px, 27vh)));
-    width: 200px; height: 196px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='196' viewBox='0 0 200 196'%3E%3Cpath d='M.5 .5H199.5V183.5L187.5 195.5H.5Z' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Cpath d='M.5 18.5H199.5' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Crect x='0' y='0' width='6' height='18' fill='%23dfff5e' fill-opacity='.1'/%3E%3Ctext x='12' y='13' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' letter-spacing='2' fill='%23dfff5e' fill-opacity='.11'%3ECODE MATRIX%3C/text%3E%3Ctext x='192' y='13' text-anchor='end' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%235ef6ff' fill-opacity='.1'%3E0x7A%3C/text%3E%3Crect x='104' y='30' width='30' height='136' fill='%23dfff5e' fill-opacity='.05'/%3E%3Crect x='21' y='39' width='16' height='12' fill='none' stroke='%23dfff5e' stroke-opacity='.07' stroke-dasharray='2 2'/%3E%3Ctext x='59' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='89' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='119' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3EE9%3C/text%3E%3Ctext x='149' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='179' y='49' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Crect x='21' y='61' width='16' height='12' fill='none' stroke='%23dfff5e' stroke-opacity='.07' stroke-dasharray='2 2'/%3E%3Ctext x='59' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EFF%3C/text%3E%3Ctext x='89' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Crect x='111' y='61' width='16' height='12' fill='none' stroke='%23dfff5e' stroke-opacity='.07' stroke-dasharray='2 2'/%3E%3Ctext x='149' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='179' y='71' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='29' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='59' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='89' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='119' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3E1C%3C/text%3E%3Ctext x='149' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='179' y='93' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EFF%3C/text%3E%3Ctext x='29' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='59' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='89' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='119' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3EFF%3C/text%3E%3Ctext x='149' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='179' y='115' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='29' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='59' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EBD%3C/text%3E%3Ctext x='89' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='119' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3E1C%3C/text%3E%3Ctext x='149' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Ctext x='179' y='137' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='29' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E1C%3C/text%3E%3Ctext x='59' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E7A%3C/text%3E%3Ctext x='89' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EFF%3C/text%3E%3Ctext x='119' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.12'%3EBD%3C/text%3E%3Ctext x='149' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3EE9%3C/text%3E%3Ctext x='179' y='159' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='11' letter-spacing='.5' fill='%23dfff5e' fill-opacity='.08'%3E55%3C/text%3E%3Crect x='14.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Ctext x='26.5' y='185.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%23dfff5e' fill-opacity='.1'%3E1C%3C/text%3E%3Crect x='43.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Ctext x='55.5' y='185.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%23dfff5e' fill-opacity='.1'%3EBD%3C/text%3E%3Crect x='72.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08'/%3E%3Ctext x='84.5' y='185.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='9' fill='%23dfff5e' fill-opacity='.1'%3E55%3C/text%3E%3Crect x='101.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08' stroke-dasharray='2 2'/%3E%3Crect x='130.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08' stroke-dasharray='2 2'/%3E%3Crect x='159.5' y='174.5' width='24' height='15' fill='none' stroke='%23dfff5e' stroke-opacity='.08' stroke-dasharray='2 2'/%3E%3C/svg%3E") no-repeat;
-    pointer-events: none;
+  /* boot: a cyberdeck's BIOS waking behind the logo, in a yellow-cornered frame; the logo stays as it is */
+  #boot {
+    background:
+      linear-gradient(#fcee0a, #fcee0a) left 3vw top 4vh / 46px 2px no-repeat, linear-gradient(#fcee0a, #fcee0a) left 3vw top 4vh / 2px 46px no-repeat,
+      linear-gradient(#5ef6ff, #5ef6ff) right 3vw bottom 4vh / 46px 1px no-repeat, linear-gradient(#5ef6ff, #5ef6ff) right 3vw bottom 4vh / 1px 46px no-repeat,
+      var(--svb-cp-strip) left 3vw bottom calc(4vh + 12px) / 260px 6px no-repeat, var(--svb-cp-matrix) right calc(3vw + 24px) top calc(4vh + 8px) / 200px 196px no-repeat,
+      radial-gradient(ellipse at 50% 46%, rgba(252, 238, 10, 0.07), transparent 58%), var(--bg);
   }
-  /* ...and its cursor, a cyan box on the live column */
-  #app::after {
-    content: ""; position: fixed; z-index: -1;
-    left: 184px; bottom: calc(202px + var(--lay-bottom, max(176px, 27vh)));
-    width: 30px; height: 22px; box-sizing: border-box;
-    border: 1px solid rgba(94, 246, 255, 0.12); background: rgba(94, 246, 255, 0.03);
-    transform: translateY(66px);
-    pointer-events: none;
+  .bootname { font-family: "Svb Rajdhani", var(--font); letter-spacing: 0.32em; }
+  .bootname small { font-family: "Svb Orbitron", var(--font); font-weight: 500; }
+  #boot > p:not(.bootname) { color: #5ef6ff; font: 500 0.82em "Svb Orbitron", var(--font); letter-spacing: 0.22em; text-transform: uppercase; }
+
+  /* notices as an incoming holocall: cut corners (the box's glow kept outside them), the caller's frame */
+  #toast { border-color: rgba(var(--cyan-rgb), 0.6); box-shadow: inset 2px 0 0 #fcee0a, 0 0 18px rgba(var(--cyan-rgb), 0.2); }
+  .mb, .mb .mb-border { border-radius: 0; }
+  .mb { clip-path: polygon(-8px 20px, 20px -8px, calc(100% + 8px) -8px, calc(100% + 8px) calc(100% - 20px), calc(100% - 20px) calc(100% + 8px), -8px calc(100% + 8px)); }
+  .mb-head { box-shadow: inset 0 -1px 0 rgba(var(--cyan-rgb), 0.3); }
+  .mb-tag { font: 700 1.02em "Svb Rajdhani", var(--font); letter-spacing: 0.16em; }
+  /* the developer's notices, logged: a cut corner */
+  .nt-item { position: relative; clip-path: polygon(-1px -1px, calc(100% - 13px) -1px, calc(100% + 1px) 13px, calc(100% + 1px) calc(100% + 1px), -1px calc(100% + 1px)); }
+  .nt-head b { font-family: "Svb Rajdhani", var(--font); font-size: 1.3em; letter-spacing: 0.04em; }
+  .nt-head em { font-family: "Svb Orbitron", var(--font); font-weight: 600; }
+
+  /* context menus are a quickhack list: a cut-corner deck (its shadow kept), angled rows with room for their RAM cost */
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) {
+    border-radius: 0; border-color: rgba(var(--cyan-rgb), 0.55);
+    clip-path: polygon(-40px -40px, calc(100% + 40px) -40px, calc(100% + 40px) calc(100% - 51px), calc(100% - 51px) calc(100% + 40px), -40px calc(100% + 40px));
+    background-image: linear-gradient(to top left, transparent 50%, #5ef6ff 50% calc(50% + 2px), transparent calc(50% + 2px));
+    background-size: 11px 11px; background-position: right bottom; background-repeat: no-repeat; background-origin: border-box;
   }
+  :is(.pk-ctx, .sc-ctx) .t { box-shadow: inset 2px 0 0 #fcee0a; color: rgba(var(--cyan-rgb), 0.85); }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) hr { border-top-color: rgba(var(--cyan-rgb), 0.25); }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button {
+    position: relative; padding-right: 46px; border-radius: 0; font: 700 12px "Svb Rajdhani", var(--font); letter-spacing: 0.08em; text-transform: uppercase;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:hover { background: linear-gradient(90deg, rgba(var(--cyan-rgb), 0.24), rgba(var(--cyan-rgb), 0.06)); box-shadow: inset 2px 0 0 #fcee0a; }
 
   /* a hacked display: cyan and coral ghosts tear the brand apart for a few frames, twice in a cycle */
   @keyframes svb-cp77-glitch {
@@ -100,6 +104,127 @@
     90.5% { text-shadow: -1px 0 rgba(94, 246, 255, 0.85), 1px 0 rgba(255, 97, 89, 0.85); transform: translateX(1px) skewX(-10deg); clip-path: inset(40% 0 0 0); }
     96.5% { text-shadow: 1px 0 rgba(94, 246, 255, 0.8), -1px 0 rgba(255, 97, 89, 0.8); transform: translateX(-1px); }
   }
+  /* "needs you" as a Relic malfunction: text splits red and cyan and the card jolts, 130 ms every 3.2 s, on top of the
+     base's red pulse (kept as it is). translate, not transform, so a hovered card keeps its nudge. */
+  @keyframes svb-cp77-relic {
+    0%, 70%, 74%, 100% { translate: none; text-shadow: none; }
+    70.8% { translate: -2px 0; text-shadow: -2px 0 rgba(94, 246, 255, 0.75), 2px 0 rgba(var(--warn-rgb), 0.85); }
+    72% { translate: 3px 0; text-shadow: 2px 0 rgba(94, 246, 255, 0.75), -2px 0 rgba(var(--warn-rgb), 0.85); }
+    73% { translate: -1px 0; text-shadow: -1px 0 rgba(94, 246, 255, 0.7), 1px 0 rgba(var(--warn-rgb), 0.8); }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .brand .stack b { animation: svb-cp77-glitch 5.4s steps(1, end) infinite; }
+    .card.st-waiting { animation: alarm 1s ease-in-out infinite, svb-cp77-relic 3.2s steps(1, end) infinite; }
+    /* behind other windows the decorations rest; the signals (the waiting card's red pulse) go on */
+    html.behind .brand .stack b { animation-play-state: paused !important; }
+    html.behind .card.st-waiting { animation-play-state: running, paused !important; }
+  }
+}
+
+/* ===== Pseudo-elements. A query on <html> by name: WebKit doesn't re-check an unnamed query on a pseudo-element when the
+   theme changes live, so they stayed after a switch. Nothing here reaches into the orbit map. ===== */
+@container svb-root style(--theme-id: svoboden-cyberpunk-2077) {
+  /* HUD scanlines: the base lines, tinted Kiroshi cyan */
+  body::before { background: repeating-linear-gradient(0deg, rgba(94, 246, 255, 0.03) 0 1px, transparent 1px 3px); }
+
+  /* dashboard panels: a yellow corner piece rides the cut (along the foot, up the diagonal, up the side)... */
+  :is(#right, #bottom) > .panel:not(.hot)::after {
+    right: -1px; bottom: -1px; width: 58px; height: 40px; border: 0;
+    background:
+      linear-gradient(to top left, transparent 50%, var(--accent) 50% calc(50% + 2px), transparent calc(50% + 2px)) right bottom / 14px 14px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) left bottom / calc(100% - 13px) 2px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) right top / 2px calc(100% - 13px) no-repeat;
+  }
+  /* ...and a HUD-cyan glint runs into the top right corner */
+  :is(#right, #bottom) > .panel:not(.hot)::before { top: -1px; left: auto; right: -1px; width: 38%; height: 2px; border: 0; background: linear-gradient(90deg, transparent, rgba(var(--cyan-rgb), 0.75)); }
+
+  /* breach protocol: a code matrix left on the wall behind the session cards, its live column lit, and its cursor */
+  #app::before {
+    content: ""; position: fixed; z-index: -1; left: 80px; bottom: calc(62px + var(--lay-bottom, max(176px, 27vh)));
+    width: 200px; height: 196px; background: var(--svb-cp-matrix) no-repeat; pointer-events: none;
+  }
+  #app::after {
+    content: ""; position: fixed; z-index: -1; left: 184px; bottom: calc(202px + var(--lay-bottom, max(176px, 27vh)));
+    width: 30px; height: 22px; box-sizing: border-box; border: 1px solid rgba(94, 246, 255, 0.12); background: rgba(94, 246, 255, 0.03);
+    transform: translateY(66px); pointer-events: none;
+  }
+
+  /* boot: the BIOS lines, and a scan line rolling down behind the logo */
+  #boot::before {
+    content: "[ OK ]  SYS.BOOT\A[ OK ]  NEURAL PORT HANDSHAKE\A[ OK ]  OPTICS CALIBRATED\A[ .. ]  ICE BREACH\A[ .. ]  DAEMONS 2/3";
+    position: absolute; left: calc(3vw + 18px); top: calc(4vh + 16px); white-space: pre; pointer-events: none;
+    color: rgba(94, 246, 255, 0.7); font: 500 9px/2 "Svb Orbitron", var(--font); letter-spacing: 0.16em;
+  }
+  #boot::after {
+    content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: 0; height: 2px; pointer-events: none; opacity: 0.85; background: #fcee0a;
+    box-shadow: 0 -3px 0 rgba(94, 246, 255, 0.5), 0 3px 0 rgba(255, 97, 89, 0.45), 0 0 18px rgba(252, 238, 10, 0.55);
+  }
+  #boot > p:not(.bootname)::before { content: "> "; color: #fcee0a; }
+
+  /* the "needs you" card's frame torn into red and cyan slivers, on its edges only (the text keeps clear) */
+  .card.st-waiting::after {
+    content: ""; position: absolute; inset: -1px; pointer-events: none;
+    background:
+      linear-gradient(var(--warn), var(--warn)) 16% 0 / 24% 3px no-repeat, linear-gradient(#5ef6ff, #5ef6ff) calc(16% + 7px) 4px / 13% 1px no-repeat,
+      linear-gradient(var(--warn), var(--warn)) 74% 100% / 18% 3px no-repeat, linear-gradient(#5ef6ff, #5ef6ff) calc(74% - 6px) calc(100% - 4px) / 10% 1px no-repeat,
+      linear-gradient(var(--warn), var(--warn)) 100% 42% / 3px 11px no-repeat, linear-gradient(#5ef6ff, #5ef6ff) 100% calc(42% + 13px) / 3px 4px no-repeat;
+  }
+
+  /* holocall: the toast's caller tab and ringing level above it... */
+  #toast::before {
+    content: "HOLOCALL"; position: absolute; left: -1px; bottom: 100%; padding: 2px 13px 1px 6px; background: #fcee0a; color: var(--ink);
+    font: 600 7.5px/1.3 "Svb Orbitron", var(--font); letter-spacing: 0.24em; clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 100%, 0 100%);
+  }
+  #toast::after { content: ""; position: absolute; right: -1px; bottom: calc(100% + 2px); width: 40px; height: 7px; background: var(--svb-cp-wave) no-repeat; }
+  /* ...a corner notice's frame lines (the caller's yellow round the header, cyan round the body) and its ringing level */
+  .mb::before {
+    content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background:
+      linear-gradient(to top left, transparent calc(50% - 2px), #fcee0a calc(50% - 2px) 50%, transparent 50%) left top / 12px 12px no-repeat,
+      linear-gradient(#fcee0a, #fcee0a) 11px 0 / 36% 2px no-repeat, linear-gradient(#fcee0a, #fcee0a) 0 11px / 2px 17px no-repeat,
+      linear-gradient(to top left, transparent 50%, #5ef6ff 50% calc(50% + 2px), transparent calc(50% + 2px)) right bottom / 12px 12px no-repeat,
+      linear-gradient(#5ef6ff, #5ef6ff) right 11px bottom 0 / 30% 2px no-repeat, linear-gradient(#5ef6ff, #5ef6ff) right 0 bottom 11px / 2px 14px no-repeat;
+  }
+  .mb.peek .mb-head::after {
+    content: ""; position: absolute; right: 10px; bottom: 2px; width: 40px; height: 7px; pointer-events: none;
+    background: var(--svb-cp-wave) no-repeat; opacity: 0.8; transform-origin: 100% 100%;
+  }
+  /* ...and the developer's logged notices: a cyan edge along the cut */
+  .nt-item::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to top right, transparent calc(50% - 2px), #5ef6ff calc(50% - 2px) 50%, transparent 50%) right top / 12px 12px no-repeat,
+      linear-gradient(#5ef6ff, #5ef6ff) right 0 top 11px / 2px 18px no-repeat;
+  }
+
+  /* quickhacks: the deck's yellow header and each hack's RAM cost */
+  :is(.pn-ctx, .mn-ctx)::before {
+    content: "QUICKHACKS"; margin: -5px -5px 5px; padding: 4px 9px 3px; background: #fcee0a; color: var(--ink);
+    font: 600 8px/1.2 "Svb Orbitron", var(--font); letter-spacing: 0.26em;
+  }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button::after {
+    content: "2"; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); padding-left: 11px;
+    background: var(--svb-cp-chip) left center / 8px 8px no-repeat; color: rgba(var(--cyan-rgb), 0.9); font: 600 9px/1 "Svb Orbitron", var(--font);
+  }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:nth-of-type(2)::after { content: "4"; }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:nth-of-type(3)::after { content: "6"; }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:nth-of-type(4)::after { content: "8"; }
+
+  /* jack-in: on switching to this theme a yellow scan line wipes the screen once, the unscanned part dim and torn */
+  #top::after {
+    position: fixed; left: 0; right: 0; top: -24px; height: calc(100vh + 24px); z-index: 48; pointer-events: none; opacity: 0;
+    background:
+      linear-gradient(transparent, rgba(252, 238, 10, 0.16)) 0 0 / 100% 22px no-repeat,
+      linear-gradient(rgba(94, 246, 255, 0.8), rgba(94, 246, 255, 0.8)) 0 17px / 100% 1px no-repeat,
+      linear-gradient(#fcee0a, #fcee0a) 0 22px / 100% 3px no-repeat,
+      linear-gradient(rgba(255, 97, 89, 0.75), rgba(255, 97, 89, 0.75)) 0 29px / 100% 1px no-repeat,
+      repeating-linear-gradient(transparent 0 5px, rgba(94, 246, 255, 0.08) 5px 6px) 0 25px / 100% 80px no-repeat,
+      linear-gradient(90deg, transparent 12%, rgba(94, 246, 255, 0.16) 12% 47%, transparent 47%) 0 calc(25px + 17vh) / 100% 10px no-repeat,
+      linear-gradient(90deg, transparent 54%, rgba(255, 97, 89, 0.15) 54% 86%, transparent 86%) 0 calc(25px + 43vh) / 100% 14px no-repeat,
+      linear-gradient(90deg, transparent 4%, rgba(252, 238, 10, 0.18) 4% 31%, transparent 31%) 0 calc(25px + 68vh) / 100% 6px no-repeat,
+      linear-gradient(90deg, transparent 61%, rgba(94, 246, 255, 0.14) 61% 95%, transparent 95%) 0 calc(25px + 84vh) / 100% 8px no-repeat,
+      linear-gradient(rgba(14, 14, 23, 0.55), rgba(14, 14, 23, 0.55)) 0 25px / 100% 100% no-repeat;
+  }
+
   /* the breach cursor hopping along the live column of the code matrix */
   @keyframes svb-cp77-cursor {
     0%, 100% { transform: translateY(66px); }
@@ -110,10 +235,50 @@
     78% { transform: translateY(0); }
     90% { transform: translateY(44px); }
   }
+  /* jack-in: three torn frames, then the sweep (top to bottom in 0.7 s), then it fades; 1.1 s in all, once */
+  @keyframes svb-cp77-intro {
+    0% { opacity: 1; transform: translate3d(0, 0, 0); animation-timing-function: steps(1, end); }
+    7% { opacity: 0.5; transform: translate3d(-4px, 0, 0); animation-timing-function: steps(1, end); }
+    12% { opacity: 1; transform: translate3d(3px, 0, 0); animation-timing-function: steps(1, end); }
+    17% { opacity: 1; transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(0.55, 0, 0.35, 1); }
+    80% { opacity: 1; transform: translate3d(0, 100vh, 0); animation-timing-function: linear; }
+    100% { opacity: 0; transform: translate3d(0, 100vh, 0); }
+  }
+  /* the boot's scan line rolling down, slipping sideways once a pass */
+  @keyframes svb-cp77-bootscan {
+    0% { transform: translate3d(0, 0, 0); opacity: 0.85; }
+    38% { transform: translate3d(0, 38vh, 0); opacity: 0.85; }
+    39% { transform: translate3d(-8px, 39vh, 0); opacity: 0.3; }
+    40.5% { transform: translate3d(5px, 40.5vh, 0); opacity: 1; }
+    42% { transform: translate3d(0, 42vh, 0); opacity: 0.85; }
+    100% { transform: translate3d(0, 100vh, 0); opacity: 0.85; }
+  }
+  /* a holocall ringing: the level meter jumps */
+  @keyframes svb-cp77-ring { 0% { transform: scaleY(1); } 25% { transform: scaleY(0.45); } 50% { transform: scaleY(0.8); } 75% { transform: scaleY(0.3); } }
 
-  /* motion only for those who allow it: the brand's glitch bursts and the breach cursor */
+  /* motion only for those who allow it; the intro is the overlay itself, so "reduce motion" never draws it */
   @media (prefers-reduced-motion: no-preference) {
-    .brand .stack b { animation: svb-cp77-glitch 5.4s steps(1, end) infinite; }
     #app::after { animation: svb-cp77-cursor 9s steps(1, end) infinite; }
+    #top::after { content: ""; animation: svb-cp77-intro 1.1s both; }
+    #boot::after { animation: svb-cp77-bootscan 3s linear infinite; }
+    #boot.gone::after { animation-play-state: paused; }
+    .mb.peek .mb-head::after { animation: svb-cp77-ring 1.2s steps(1, end) infinite; }
+    html.behind #app::after { animation-play-state: paused !important; }
   }
 }
+
+/* The theme view's card for this theme, shown whatever theme is on (so outside both gates, and only that one card): its
+   picture gets the game's cut corner, the yellow corner piece along it and a corner of the code matrix. */
+.th-card[data-id="svoboden-cyberpunk-2077"] .th-shot {
+  position: relative; border-radius: 0;
+  clip-path: polygon(-20px -20px, calc(100% + 20px) -20px, calc(100% + 20px) calc(100% - 34px), calc(100% - 34px) calc(100% + 20px), -20px calc(100% + 20px));
+}
+.th-card[data-id="svoboden-cyberpunk-2077"] .th-shot::before {
+  content: ""; position: absolute; right: 0; bottom: 0; width: 46px; height: 30px; pointer-events: none;
+  background:
+    linear-gradient(to top left, transparent 50%, var(--t-acc) 50% calc(50% + 2px), transparent calc(50% + 2px)) right bottom / 14px 14px no-repeat,
+    linear-gradient(var(--t-acc), var(--t-acc)) left bottom / calc(100% - 13px) 2px no-repeat, linear-gradient(var(--t-acc), var(--t-acc)) right top / 2px calc(100% - 13px) no-repeat;
+}
+.th-card[data-id="svoboden-cyberpunk-2077"] .th-shot::after { content: ""; position: absolute; right: 14px; bottom: 20px; width: 72px; height: 34px; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='34' viewBox='0 0 72 34'%3E%3Crect x='18' y='0' width='18' height='34' fill='%23dfff5e' fill-opacity='.16'/%3E%3Crect x='18.5' y='11.5' width='17' height='11' fill='none' stroke='%235ef6ff' stroke-opacity='.85'/%3E%3Ctext x='9' y='8.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3E1C%3C/text%3E%3Ctext x='27' y='8.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.95'%3EBD%3C/text%3E%3Ctext x='45' y='8.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3E55%3C/text%3E%3Ctext x='63' y='8.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3EE9%3C/text%3E%3Ctext x='9' y='19.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3E7A%3C/text%3E%3Ctext x='27' y='19.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.95'%3E1C%3C/text%3E%3Ctext x='45' y='19.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3EFF%3C/text%3E%3Ctext x='63' y='19.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3EBD%3C/text%3E%3Ctext x='9' y='30.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3E55%3C/text%3E%3Ctext x='27' y='30.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.95'%3EE9%3C/text%3E%3Ctext x='45' y='30.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3E1C%3C/text%3E%3Ctext x='63' y='30.5' text-anchor='middle' font-family='DIN Alternate, Avenir Next Condensed, Helvetica Neue, Arial, sans-serif' font-weight='700' font-size='7.5' fill='%23dfff5e' fill-opacity='.55'%3E7A%3C/text%3E%3C/svg%3E") no-repeat; }
+.th-card[data-id="svoboden-cyberpunk-2077"] .th-top { border-color: var(--t-acc); box-shadow: inset 0 -2px 0 var(--t-acc); }
+.th-card[data-id="svoboden-cyberpunk-2077"] .th-name { font: 700 13px/14px "Svb Rajdhani", var(--font); letter-spacing: 0.12em; text-transform: uppercase; } /* the base row height, so the grid stays put */

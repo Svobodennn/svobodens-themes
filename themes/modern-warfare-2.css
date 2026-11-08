@@ -1,12 +1,16 @@
-/* Modern Warfare 2 (Svoboden's Themes): what its colours alone can't give. Every rule below applies only while this
-   theme is chosen (its tokens set --theme-id: svoboden-modern-warfare-2 on :root), so the other themes look as they did;
-   the orbit map is left as it is. All art is drawn here: generic military motifs, no logos, no traced artwork.
+/* Modern Warfare 2 (Svoboden's Themes): what its colours alone can't give. Every rule waits for this theme's
+   --theme-id (its tokens set it on :root), so the other themes look as they did; the orbit map is left as it is.
+   Two gates: rules for elements wait in the unnamed style query, which honours the map's reset below; rules for
+   ::before/::after wait in the one named on <html>, because WebKit re-reads a pseudo-element's own unnamed query only
+   late, and a live theme switch would leave them on screen. All art is drawn here: generic military motifs, no logos, no traced artwork.
    Fonts: Barlow Condensed and Michroma (SIL Open Font License, fonts/OFL-*.txt). */
 
 @font-face { font-family: "Svb Barlow Condensed"; src: url("fonts/BarlowCondensed-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Svb Barlow Condensed"; src: url("fonts/BarlowCondensed-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "Svb Michroma"; src: url("fonts/Michroma-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
 
+/* both gates read <html>; the other sheets of the pack name it the same */
+html { container-name: svb-root; }
 /* the orbit map keeps its own look */
 #mapwrap { --theme-id: none; }
 
@@ -20,6 +24,25 @@
   66.01% { clip-path: polygon(0 0, 100% 0, 100% 66.7%, 0 66.7%, 0 100%, 0 100%); }
   100% { clip-path: polygon(0 0, 100% 0, 100% 66.7%, 100% 66.7%, 100% 100%, 0 100%); }
 }
+@keyframes svb-mw2-static {
+  0% { opacity: 0; visibility: visible; transform: translate(0, 0); }
+  6% { opacity: 0.72; transform: translate(-3%, 2%); }
+  22% { opacity: 0.6; transform: translate(2%, -3%); }
+  38% { opacity: 0.66; transform: translate(-2%, -2%); }
+  54% { opacity: 0.4; transform: translate(3%, 2%); }
+  100% { opacity: 0; visibility: hidden; transform: translate(-1%, 1%); }
+}
+@keyframes svb-mw2-uplink {
+  0%, 30% { opacity: 0; visibility: visible; clip-path: inset(0 50%); }
+  33% { opacity: 1; clip-path: inset(0 50%); }
+  46% { clip-path: inset(0 0); }
+  50% { opacity: 0.5; } 54%, 80% { opacity: 1; clip-path: inset(0 0); }
+  100% { opacity: 0; visibility: hidden; clip-path: inset(0 0); }
+}
+@keyframes svb-mw2-incoming { 50% { opacity: 0.35; } }
+@keyframes svb-mw2-load { to { transform: translateX(252px); } }
+@keyframes svb-mw2-card-in { 0% { opacity: 0; transform: translateX(56px); } 55% { opacity: 1; transform: translateX(-5px); } 100% { opacity: 1; transform: none; } }
+@keyframes svb-mw2-toast-in { 0% { transform: translateX(calc(-50% + 48px)); } 60% { transform: translateX(calc(-50% - 4px)); } 100% { transform: translateX(-50%); } }
 
 @container style(--theme-id: svoboden-modern-warfare-2) {
   /* menu lettering: thin, condensed, tracked caps, as in the 2009 menu list; tabs cut on the slant */
@@ -33,13 +56,6 @@
   .brand .stack b { font-size: 0.8em; letter-spacing: 0.09em; }
   .brand .stack small { letter-spacing: 0.3em; }
   .brand .stack { position: relative; isolation: isolate; }
-  .brand .stack::before, .brand .stack::after {
-    content: ""; position: absolute; inset: -4px -5px; z-index: -1;
-    border: 1px solid rgba(225, 214, 166, 0.26); border-radius: 7px; box-shadow: inset 0 0 0 2px rgba(20, 19, 15, 0.45), inset 0 0 0 3px rgba(225, 214, 166, 0.1);
-    background: linear-gradient(160deg, rgba(225, 214, 166, 0.1), rgba(182, 174, 133, 0.03) 55%, rgba(225, 214, 166, 0.08));
-    pointer-events: none;
-  }
-  .brand .stack::after { z-index: -2; transform: translate(5px, 4px) rotate(-4deg); border-color: rgba(182, 174, 133, 0.16); background: none; box-shadow: none; }
 
   /* top bar: crushed black over a compass tape, its heading marked in lime */
   #top {
@@ -57,16 +73,61 @@
       linear-gradient(90deg, rgba(63, 61, 57, 0.55), rgba(37, 37, 32, 0.2) 70%, transparent);
     border-bottom-color: rgba(var(--accent-rgb), 0.24);
   }
+
+  /* the 2009 menu's amber glow on what you point at */
+  .topbtn:not(.primary, .update, #sound.on):hover { color: var(--amber); border-color: var(--amber); box-shadow: 0 0 10px rgba(var(--amber-rgb), 0.3); }
+  .card:not(.st-waiting):hover { border-color: rgba(var(--amber-rgb), 0.75); }
+
+  /* the mission loading screen: the briefing face on the name, the status line in tracked caps */
+  #boot .bootname, #boot .bootname small { font-family: "Svb Michroma", var(--font); font-weight: 400; }
+  #boot .bootname { letter-spacing: 0.16em; }
+  #boot > p:not(.bootname) { color: #e1d6a6; font: 500 1.1em "Svb Barlow Condensed", var(--font); letter-spacing: 0.3em; text-transform: uppercase; }
+
+  /* notifications as killstreak cards: a chamfered plate, its icon slot, tracked caps, sliding in from the right */
+  #toast {
+    padding: 7px 16px 7px 42px; border-color: transparent; color: var(--hi);
+    font: 500 1.15em/1.25 "Svb Barlow Condensed", var(--font); letter-spacing: 0.08em;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    background:
+      linear-gradient(135deg, transparent 6.8px, var(--accent) 6.8px 8.2px, transparent 8.2px) 0 0 / 11px 11px no-repeat,
+      linear-gradient(315deg, transparent 6.8px, var(--accent) 6.8px 8.2px, transparent 8.2px) 100% 100% / 11px 11px no-repeat,
+      linear-gradient(90deg, rgba(var(--accent-rgb), 0.16), rgba(37, 37, 32, 0.94) 40px, rgba(20, 19, 15, 0.94));
+    box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.45), inset 0 -2px 0 rgba(var(--amber-rgb), 0.55);
+  }
+  .mb.peek { --svb-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 13v8M9 21h6M8.5 7.5a5 5 0 0 0 0 7M15.5 7.5a5 5 0 0 1 0 7M5.5 4.5a9 9 0 0 0 0 13M18.5 4.5a9 9 0 0 1 0 13'/%3E%3Ccircle cx='12' cy='11' r='1.6' fill='%2398d538'/%3E%3C/svg%3E"); border-radius: 0; clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 22px rgba(var(--glow), 0.14); }
+  .mb.peek .mb-border { border-radius: 0; }
+  .mb.peek .mb-tag { font: 600 1.08em/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.18em; }
+  .mb.peek.update { --svb-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8l8-4 8 4v9l-8 4-8-4zM4 8l8 4 8-4M12 12v9M8 6l8 4'/%3E%3C/svg%3E"); }
+  .mb.peek.note { --svb-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l4 4v14H6zM15 3v4h4M9 11h7M9 14h7M9 17h4'/%3E%3C/svg%3E"); }
+  .mb.peek:is(.xp, .fire) { --svb-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dcad00' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 10l7-4 7 4M5 15l7-4 7 4M5 20l7-4 7 4'/%3E%3C/svg%3E"); }
+  .mb.peek.wait { --svb-ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff6b5e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3l10 18H2zM12 10v5M12 18v.4'/%3E%3C/svg%3E"); }
+  /* the developer's notifications on the dashboard: intel sheets with a cut corner */
+  .nt-item { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); background: linear-gradient(225deg, transparent 8.2px, rgba(var(--accent-rgb), 0.6) 8.2px 9.6px, transparent 9.6px), rgba(var(--surface-rgb), 0.55); }
+  .nt-head em { background: var(--amber); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .mb.peek.in:not(.out) { animation: svb-mw2-card-in 0.42s cubic-bezier(0.2, 0.85, 0.3, 1) both; }
+    #toast.on { animation: svb-mw2-toast-in 0.36s cubic-bezier(0.2, 0.85, 0.3, 1) both; }
+  }
+}
+
+@container svb-root style(--theme-id: svoboden-modern-warfare-2) {
+  /* the dog tags behind the brand */
+  .brand .stack::before, .brand .stack::after {
+    content: ""; position: absolute; inset: -4px -5px; z-index: -1;
+    border: 1px solid rgba(225, 214, 166, 0.26); border-radius: 7px; box-shadow: inset 0 0 0 2px rgba(20, 19, 15, 0.45), inset 0 0 0 3px rgba(225, 214, 166, 0.1);
+    background: linear-gradient(160deg, rgba(225, 214, 166, 0.1), rgba(182, 174, 133, 0.03) 55%, rgba(225, 214, 166, 0.08));
+    pointer-events: none;
+  }
+  .brand .stack::after { z-index: -2; transform: translate(5px, 4px) rotate(-4deg); border-color: rgba(182, 174, 133, 0.16); background: none; box-shadow: none; }
+
+  /* the panel headers' passing light in the menu's amber */
   .panel > header::after { background: linear-gradient(90deg, transparent, rgba(var(--amber-rgb), 0.16), transparent); }
 
   /* corners: the gunship sight's thin white-hot brackets */
   .panel::before, .panel::after, #activity::before, #activity::after { width: 10px; height: 10px; border-color: rgba(223, 221, 220, 0.6); }
   .panel::before, #activity::before { top: -3px; left: -3px; border-width: 1px 0 0 1px; }
   .panel::after, #activity::after { bottom: -3px; right: -3px; border-width: 0 1px 1px 0; }
-
-  /* the 2009 menu's amber glow on what you point at */
-  .topbtn:not(.primary, .update, #sound.on):hover { color: var(--amber); border-color: var(--amber); box-shadow: 0 0 10px rgba(var(--amber-rgb), 0.3); }
-  .card:not(.st-waiting):hover { border-color: rgba(var(--amber-rgb), 0.75); }
 
   /* the UAV minimap, low on the left edge: square plate, range rings, you in lime, and its sweep */
   #app::before {
@@ -88,6 +149,8 @@
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240'%3E%3Cpath d='M30 52Q62 41 91 37L100 30L109 37Q138 41 170 52L171 116Q168 162 132 184L138 206Q172 218 192 240H8Q28 218 62 206L68 184Q32 162 29 116Z' fill='%23252520' stroke='%235c5a52' stroke-width='1.6'/%3E%3Cpath d='M36 59Q64 48 92 44L100 38L108 44Q136 48 164 59' fill='none' stroke='%235c5a52' stroke-width='1.2' stroke-dasharray='3 3'/%3E%3Cpath d='M84 196V240M100 198V240M116 196V240' stroke='%233f3d39' stroke-width='1.4'/%3E%3Cg fill='none' stroke='%23b6ae85' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M50 82V122L60 140Q70 156 86 162L100 164L114 162Q130 156 140 140L150 122V82'/%3E%3Cpath d='M87 75L67 73L45 63M67 73L61 83M113 75L133 73L155 63M133 73L139 83' stroke-width='2.4'/%3E%3Cpath d='M58 80L68 86H132L142 80M70 125H130' stroke-width='2'/%3E%3C/g%3E%3Cpath d='M100 46C95 52 89 63 92 71Q96 73 100 68Q104 73 108 71C111 63 105 52 100 46Z' fill='%23b6ae85'/%3E%3Cg fill='%23e1d6a6'%3E%3Crect x='69.0' y='89.0' width='6.6' height='13.0' rx='1.8'/%3E%3Crect x='76.8' y='89.0' width='6.6' height='14.5' rx='1.8'/%3E%3Crect x='84.6' y='89.0' width='6.6' height='15.5' rx='1.8'/%3E%3Crect x='92.4' y='89.0' width='6.6' height='16.5' rx='1.8'/%3E%3Crect x='100.2' y='89.0' width='6.6' height='16.5' rx='1.8'/%3E%3Crect x='108.0' y='89.0' width='6.6' height='15.5' rx='1.8'/%3E%3Crect x='115.8' y='89.0' width='6.6' height='14.5' rx='1.8'/%3E%3Crect x='123.6' y='89.0' width='6.6' height='13.0' rx='1.8'/%3E%3Crect x='70.5' y='108.0' width='6.2' height='12.0' rx='1.8'/%3E%3Crect x='77.9' y='108.0' width='6.2' height='13.0' rx='1.8'/%3E%3Crect x='85.3' y='108.0' width='6.2' height='14.0' rx='1.8'/%3E%3Crect x='92.7' y='108.0' width='6.2' height='14.5' rx='1.8'/%3E%3Crect x='100.1' y='108.0' width='6.2' height='14.5' rx='1.8'/%3E%3Crect x='107.5' y='108.0' width='6.2' height='14.0' rx='1.8'/%3E%3Crect x='114.9' y='108.0' width='6.2' height='13.0' rx='1.8'/%3E%3Crect x='122.3' y='108.0' width='6.2' height='12.0' rx='1.8'/%3E%3C/g%3E%3Cpath d='M100 164V170' stroke='%23b6ae85' stroke-width='2'/%3E%3Cg fill='%23b6ae85'%3E%3Ccircle cx='80' cy='146' r='2.2'/%3E%3Ccircle cx='120' cy='146' r='2.2'/%3E%3C/g%3E%3C/svg%3E") 50% 100% / contain no-repeat;
     opacity: 0.1; pointer-events: none;
   }
+  /* the map reaches the right edge without the right column, Source Control fills the middle, the cloud views too: the watermark stands down */
+  #app:is(.no-right, .git-mode, .cloud-mode)::after { content: none; }
 
   /* the gunship's white-hot sight and weapon list, behind the session cards */
   #sessions::after {
@@ -105,10 +168,74 @@
     pointer-events: none;
   }
 
+  /* "needs you": the missile warning, INCOMING blinking down the card's right edge; the red border, glow and pill stay */
+  .card.st-waiting::after {
+    content: "INCOMING"; position: absolute; top: 0; right: 0; bottom: 0; width: 8px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl;
+    border-left: 1px solid var(--warn); background: rgba(20, 19, 15, 0.9); color: var(--warn); font: 600 7px/7px "Svb Barlow Condensed", var(--font); letter-spacing: 0.24em;
+    pointer-events: none;
+  }
+  .card.st-waiting.collapsed::after { content: ""; }
+
+  /* the mission loading screen: a map sheet with numbered grid squares, the briefing in the corner, the loading ticks */
+  #boot::before { content: ""; position: absolute; inset: 0; z-index: -1; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000' preserveAspectRatio='xMidYMid slice'%3E%3Cpath d='M100 0V1000M200 0V1000M300 0V1000M400 0V1000M500 0V1000M600 0V1000M700 0V1000M800 0V1000M900 0V1000M1000 0V1000M1100 0V1000M1200 0V1000M1300 0V1000M1400 0V1000M1500 0V1000M0 100H1600M0 200H1600M0 300H1600M0 400H1600M0 500H1600M0 600H1600M0 700H1600M0 800H1600M0 900H1600' stroke='%23dfdddc' stroke-opacity='.07'/%3E%3Cpath d='M1224 323Q1230 330 1226 337Q1222 345 1213 349Q1204 354 1198 358Q1193 363 1187 367Q1182 372 1173 372Q1165 373 1157 372Q1150 372 1141 376Q1133 379 1122 380Q1112 381 1103 377Q1095 372 1092 365Q1089 357 1091 350Q1093 342 1096 336Q1100 330 1098 324Q1096 319 1093 311Q1091 304 1096 298Q1101 292 1109 289Q1117 285 1124 281Q1131 276 1141 274Q1150 272 1158 277Q1167 283 1172 289Q1177 295 1182 298Q1187 301 1194 304Q1201 307 1210 312Q1218 316 1224 323ZM1293 316Q1296 330 1286 343Q1275 356 1262 365Q1249 374 1241 384Q1233 394 1221 401Q1209 408 1193 408Q1177 408 1164 413Q1150 417 1131 427Q1113 437 1093 435Q1072 433 1062 419Q1052 405 1050 390Q1048 375 1048 363Q1049 351 1048 340Q1047 330 1041 318Q1034 306 1034 292Q1033 278 1045 268Q1057 258 1070 250Q1084 242 1098 232Q1113 223 1131 224Q1150 225 1164 238Q1177 251 1187 259Q1197 267 1213 268Q1229 269 1246 274Q1264 279 1277 290Q1290 301 1293 316ZM1352 309Q1352 330 1339 348Q1327 366 1312 381Q1297 395 1284 409Q1271 423 1252 431Q1232 439 1212 444Q1191 448 1171 463Q1150 478 1120 491Q1090 503 1065 490Q1040 477 1033 451Q1025 426 1019 408Q1014 390 1005 376Q996 362 989 346Q982 330 976 311Q970 293 974 273Q977 253 994 238Q1010 222 1029 208Q1047 193 1072 184Q1096 174 1123 184Q1150 194 1168 212Q1185 229 1205 230Q1225 231 1255 228Q1286 225 1310 237Q1334 248 1343 268Q1353 288 1352 309ZM1404 304Q1406 330 1393 354Q1381 378 1360 396Q1340 414 1321 431Q1302 447 1280 460Q1258 474 1235 490Q1211 506 1181 529Q1150 553 1110 556Q1070 560 1046 530Q1022 500 1014 471Q1006 441 987 426Q969 410 950 393Q930 375 923 353Q917 330 913 305Q909 280 913 253Q917 226 936 204Q956 181 985 165Q1014 148 1049 145Q1085 143 1117 160Q1150 177 1173 187Q1197 196 1231 186Q1266 175 1309 175Q1351 175 1372 199Q1392 222 1397 250Q1402 278 1404 304ZM1458 299Q1466 330 1447 359Q1429 387 1400 408Q1371 428 1353 450Q1335 472 1316 499Q1297 525 1267 553Q1237 581 1194 601Q1150 620 1104 606Q1059 591 1036 551Q1014 512 995 487Q977 463 942 450Q907 438 885 414Q863 389 860 360Q858 330 849 298Q841 266 842 230Q844 194 874 168Q905 141 949 131Q992 120 1036 124Q1080 129 1115 141Q1150 152 1183 146Q1216 139 1267 123Q1318 106 1363 119Q1407 132 1421 168Q1434 204 1442 236Q1451 268 1458 299ZM1516 293Q1523 330 1490 362Q1457 393 1428 417Q1399 441 1394 477Q1388 513 1370 555Q1351 597 1307 625Q1263 653 1206 657Q1150 660 1103 631Q1055 602 1028 566Q1001 529 966 514Q931 499 885 483Q840 468 823 434Q806 401 801 365Q795 330 775 289Q754 248 762 205Q769 161 821 139Q874 117 930 115Q987 113 1030 112Q1074 112 1112 106Q1150 100 1197 81Q1244 61 1304 53Q1365 44 1405 73Q1445 103 1458 145Q1470 188 1490 222Q1509 256 1516 293ZM1563 287Q1557 330 1516 363Q1474 397 1464 431Q1453 465 1462 521Q1471 577 1439 624Q1407 672 1342 685Q1278 698 1214 685Q1150 673 1100 644Q1051 615 1012 590Q974 564 925 553Q876 541 829 517Q783 493 767 453Q751 412 730 371Q709 330 682 279Q656 228 687 183Q719 139 795 127Q871 116 927 112Q983 108 1021 88Q1059 68 1104 44Q1150 21 1210 3Q1270 -15 1334 -8Q1398 -1 1437 40Q1475 80 1496 124Q1517 167 1543 205Q1569 244 1563 287ZM434 754Q434 760 432 765Q429 770 425 774Q420 778 416 781Q412 785 408 788Q403 791 398 794Q393 797 386 802Q380 807 371 808Q363 809 358 803Q353 796 351 790Q349 784 345 780Q342 777 337 773Q333 770 332 765Q330 760 330 755Q329 749 330 744Q330 738 335 733Q339 728 345 725Q351 721 358 721Q366 720 373 724Q380 727 385 729Q390 732 397 729Q405 727 414 727Q423 727 427 732Q432 737 433 743Q434 749 434 754ZM488 749Q491 760 484 770Q477 780 467 787Q457 794 451 802Q445 810 439 820Q432 830 422 840Q411 849 396 855Q380 862 364 856Q349 850 341 836Q333 822 326 815Q319 807 307 803Q294 798 286 790Q279 781 278 770Q278 760 274 749Q271 738 271 725Q272 712 283 703Q294 694 310 691Q326 688 341 689Q356 691 368 694Q380 698 392 695Q404 692 422 686Q440 680 455 686Q470 691 474 704Q478 716 482 727Q485 738 488 749ZM541 744Q543 760 527 774Q512 787 501 798Q490 809 490 827Q490 845 481 864Q472 883 451 893Q430 904 405 903Q380 902 360 889Q340 876 327 862Q314 848 297 842Q280 837 261 829Q241 822 235 806Q228 791 224 776Q220 760 210 741Q200 723 206 704Q211 685 237 677Q262 669 287 669Q311 668 329 666Q347 664 363 659Q380 654 402 645Q423 636 449 634Q476 633 492 647Q508 661 514 679Q521 698 530 712Q540 727 541 744ZM584 738Q577 760 559 777Q541 793 543 813Q544 833 550 864Q555 895 534 916Q513 937 478 938Q442 939 411 932Q380 925 355 913Q330 902 309 892Q288 882 263 876Q237 870 215 856Q193 843 184 823Q174 802 160 781Q145 760 135 734Q124 707 147 687Q171 667 210 663Q250 660 273 655Q297 649 314 634Q331 619 355 606Q380 593 411 587Q442 582 473 588Q504 595 523 615Q543 635 555 656Q567 677 579 697Q591 717 584 738ZM612 735Q602 760 599 782Q595 804 613 838Q630 871 626 909Q622 946 579 957Q537 969 492 962Q448 955 414 953Q380 951 348 946Q317 941 288 931Q260 920 229 910Q199 899 170 882Q142 866 121 842Q99 818 80 789Q61 760 67 728Q73 697 117 680Q162 663 201 657Q239 652 253 630Q266 608 287 581Q308 553 344 544Q380 535 418 537Q457 540 493 550Q530 560 556 582Q581 605 596 631Q610 658 616 684Q622 710 612 735Z' fill='none' stroke='%23b6ae85' stroke-opacity='.13' stroke-width='1.4'/%3E%3Cpath d='M0 965C220 935 420 990 640 955S1000 870 1240 905S1520 960 1600 935' fill='none' stroke='%232d9485' stroke-opacity='.22' stroke-width='3'/%3E%3Cpath d='M140 0C200 200 380 330 470 520S560 840 520 1000' fill='none' stroke='%23dfdddc' stroke-opacity='.1' stroke-width='2' stroke-dasharray='14 10'/%3E%3Cpath d='M1150 312l18 18-18 18-18-18z' fill='none' stroke='%23dcad00' stroke-opacity='.5' stroke-width='2'/%3E%3Cg fill='%23e1d6a6' fill-opacity='.3' font-family='DIN Condensed, DIN Alternate, Arial Narrow, sans-serif' font-weight='700' font-size='14' letter-spacing='1'%3E%3Ctext x='104' y='16'%3E41%3C/text%3E%3Ctext x='204' y='16'%3E42%3C/text%3E%3Ctext x='304' y='16'%3E43%3C/text%3E%3Ctext x='404' y='16'%3E44%3C/text%3E%3Ctext x='504' y='16'%3E45%3C/text%3E%3Ctext x='604' y='16'%3E46%3C/text%3E%3Ctext x='704' y='16'%3E47%3C/text%3E%3Ctext x='804' y='16'%3E48%3C/text%3E%3Ctext x='904' y='16'%3E49%3C/text%3E%3Ctext x='1004' y='16'%3E50%3C/text%3E%3Ctext x='1104' y='16'%3E51%3C/text%3E%3Ctext x='1204' y='16'%3E52%3C/text%3E%3Ctext x='1304' y='16'%3E53%3C/text%3E%3Ctext x='1404' y='16'%3E54%3C/text%3E%3Ctext x='1504' y='16'%3E55%3C/text%3E%3Ctext x='6' y='96'%3E23%3C/text%3E%3Ctext x='6' y='196'%3E22%3C/text%3E%3Ctext x='6' y='296'%3E21%3C/text%3E%3Ctext x='6' y='396'%3E20%3C/text%3E%3Ctext x='6' y='496'%3E19%3C/text%3E%3Ctext x='6' y='596'%3E18%3C/text%3E%3Ctext x='6' y='696'%3E17%3C/text%3E%3Ctext x='6' y='796'%3E16%3C/text%3E%3Ctext x='6' y='896'%3E15%3C/text%3E%3Ctext x='1176' y='336' fill='%23dcad00' fill-opacity='.6'%3EHILL 347%3C/text%3E%3Ctext x='1490' y='986'%3E38S MB%3C/text%3E%3C/g%3E%3C/svg%3E") 50% 50% / cover no-repeat; pointer-events: none; }
+  #boot::after {
+    content: "OP. SVOBODEN\A DAY 03 - 03:47Z\A GRID 38S MB 4415"; position: absolute; left: 5vw; bottom: 8vh;
+    white-space: pre; color: rgba(225, 214, 166, 0.7); font: 400 11px/2.1 "Svb Michroma", var(--font); letter-spacing: 0.16em;
+    pointer-events: none;
+  }
+  #boot > p:not(.bootname)::before {
+    content: "LOADING"; position: absolute; left: calc(50% - 150px); top: calc(50% + 112px); width: 300px; padding-bottom: 13px;
+    color: var(--accent); font: 400 10px/1 "Svb Michroma", var(--font); letter-spacing: 0.5em; text-transform: none;
+    background: repeating-linear-gradient(90deg, rgba(223, 221, 220, 0.3) 0 2px, transparent 2px 6px) 0 100% / 100% 7px no-repeat;
+    pointer-events: none;
+  }
+  #boot > p:not(.bootname)::after {
+    content: ""; position: absolute; left: calc(50% - 150px); top: calc(50% + 128px); width: 48px; height: 7px;
+    background: repeating-linear-gradient(90deg, var(--accent) 0 2px, transparent 2px 6px); box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.5);
+    pointer-events: none;
+  }
+
+  /* the killstreak cards' icon slot and cut corners */
+  #toast::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 32px; border-right: 1px solid rgba(var(--accent-rgb), 0.4); background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 13v8M9 21h6M8.5 7.5a5 5 0 0 0 0 7M15.5 7.5a5 5 0 0 1 0 7M5.5 4.5a9 9 0 0 0 0 13M18.5 4.5a9 9 0 0 1 0 13'/%3E%3Ccircle cx='12' cy='11' r='1.6' fill='%2398d538'/%3E%3C/svg%3E") 50% 50% / 17px no-repeat; pointer-events: none; }
+  .mb.peek::before {
+    content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background:
+      linear-gradient(135deg, transparent 8.2px, rgb(var(--glow)) 8.2px 9.8px, transparent 9.8px) 0 0 / 13px 13px no-repeat,
+      linear-gradient(315deg, transparent 8.2px, rgb(var(--glow)) 8.2px 9.8px, transparent 9.8px) 100% 100% / 13px 13px no-repeat;
+  }
+  .mb.peek .mb-head::before { content: ""; flex: none; align-self: stretch; width: 28px; border-right: 1px solid rgba(var(--glow), 0.4); background: rgba(var(--glow), 0.12) var(--svb-ico) 50% 50% / 16px no-repeat; }
+
+  /* the theme's intro: a burst of signal static, then the feed connects (UPLINK ESTABLISHED); see-through by its end */
+  #ticker::before, #ticker::after { position: fixed; z-index: 48; opacity: 0; visibility: hidden; pointer-events: none; }
+  #ticker::before {
+    inset: -12%;
+    background:
+      repeating-linear-gradient(0deg, rgba(20, 19, 15, 0.55) 0 1px, transparent 1px 3px),
+      linear-gradient(transparent 31%, rgba(223, 221, 220, 0.2) 31% 32.2%, transparent 32.2% 63%, rgba(var(--accent-rgb), 0.16) 63% 63.8%, transparent 63.8%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .88 0 0 0 0 .87 0 0 0 0 .82 1.5 0 0 0 -.5'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 160px 160px, rgba(20, 19, 15, 0.6);
+  }
+  #ticker::after {
+    left: 0; right: 0; top: 50%; height: 44px; margin-top: -22px;
+    display: flex; align-items: center; justify-content: center;
+    background:
+      linear-gradient(90deg, transparent 10%, rgba(var(--accent-rgb), 0.75) 32% 68%, transparent 90%) 0 0 / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent 10%, rgba(var(--accent-rgb), 0.75) 32% 68%, transparent 90%) 0 100% / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent, rgba(20, 19, 15, 0.9) 24% 76%, transparent);
+    color: #e1d6a6; font: 400 14px/1 "Svb Michroma", var(--font); letter-spacing: 0.45em; text-indent: 0.45em;
+    text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.55);
+  }
+
   @media (prefers-reduced-motion: no-preference) {
     #top::after { animation: svb-mw2-sweep 5s linear infinite; }
     #sessions::before { animation: svb-mw2-type 2.4s steps(14, end) 0.6s both; }
+    #ticker::before { content: ""; animation: svb-mw2-static 0.75s steps(3, end) 1 both; }
+    #ticker::after { content: "UPLINK ESTABLISHED"; animation: svb-mw2-uplink 1.15s ease-out 1 both; }
+    .card.st-waiting::after { animation: svb-mw2-incoming 1s steps(1, end) infinite; }
+    #boot:not(.gone) > p:not(.bootname)::after { animation: svb-mw2-load 1.6s steps(21, end) infinite; }
   }
+  /* behind a chat window the decorations rest, as the app's own do; the INCOMING signal goes on */
+  html.behind #top::after { animation-play-state: paused !important; }
   @media (max-width: 1250px) { #sessions::after { width: max(230px, 26vw - 4px); } }
   /* one column on a narrow window: the fixed pieces would land on the panels, so they stand down */
   @media (max-width: 920px) { #app::before, #app::after, #top::after, #sessions::before, #sessions::after { content: none; } }
@@ -116,7 +243,9 @@
 
 /* an amber holographic sight as the mouse cursor: resting, over something clickable (tightened), pressed (flash).
    The orbit map keeps its own (its children would otherwise inherit the sight), and so do text fields and the app's
-   working cursors: resize lines, drag strips, dragging, busy, disabled. */
+   working cursors: resize lines, drag strips, dragging, busy, the level-up takeover's hidden one. What can't be clicked
+   (disabled, a fixed key, an anonymous row, a strip on the one-column layout) gets the resting sight, never the pointer.
+   Element rules only, in the unnamed gate: the named one would reach into the orbit map. */
 @container style(--theme-id: svoboden-modern-warfare-2) {
   * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
   :is(#activity .vs-ab, #board-view .lb-row, #git .vs-al, #git .vs-db, #git .vs-ph, #git .vs-r, #git .vs-si, #git .vs-sticky, #git .vs-sw, #git .vs-tab, #git .vs-tb, #hud button, #takeover.free, #viewctl button, .arc-btn, .askbox button, .brand, .card, .card .lights i, .dg-acts button, .dp-end, .dp-x, .gchip, .h-btns button, .hk-row button, .ks-all, .ks-key, .ks-undo, .lb-row, .lb-seg button, .lights i, .ln, .lvb[data-act], .mb.peek.fire, .mb.peek.note, .mb.peek.online, .mb.peek.update, .mb.peek.xp, .mb-actions button, .mb-input .send, .mb-more, .mb-msg.failed .b, .mb-switch button, .mb-text, .mb-x, .mn-btn, .mn-copy, .mn-ctx button, .mn-main[data-act], .mn-pick button, .mn-send, .mn-status, .mn-tabs button, .pie .hub, .pie .slice, .pk-bar button, .pk-crumbs span, .pk-ctx button, .pk-foot button, .pk-hid, .pk-place, .rf, .sc-ctx button, .sc-tile, .th-card, .topbtn, .wk, .yc, [role=button], a[href], button, input[type=button], input[type=checkbox], input[type=radio], input[type=submit], label, select, summary), :is(#activity .vs-ab, #board-view .lb-row, #git .vs-al, #git .vs-db, #git .vs-ph, #git .vs-r, #git .vs-si, #git .vs-sticky, #git .vs-sw, #git .vs-tab, #git .vs-tb, #hud button, #takeover.free, #viewctl button, .arc-btn, .askbox button, .brand, .card, .card .lights i, .dg-acts button, .dp-end, .dp-x, .gchip, .h-btns button, .hk-row button, .ks-all, .ks-key, .ks-undo, .lb-row, .lb-seg button, .lights i, .ln, .lvb[data-act], .mb.peek.fire, .mb.peek.note, .mb.peek.online, .mb.peek.update, .mb.peek.xp, .mb-actions button, .mb-input .send, .mb-more, .mb-msg.failed .b, .mb-switch button, .mb-text, .mb-x, .mn-btn, .mn-copy, .mn-ctx button, .mn-main[data-act], .mn-pick button, .mn-send, .mn-status, .mn-tabs button, .pie .hub, .pie .slice, .pk-bar button, .pk-crumbs span, .pk-ctx button, .pk-foot button, .pk-hid, .pk-place, .rf, .sc-ctx button, .sc-tile, .th-card, .topbtn, .wk, .yc, [role=button], a[href], button, input[type=button], input[type=checkbox], input[type=radio], input[type=submit], label, select, summary) * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.3'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3Cpath d='M16 22v2 M10 16h-2 M22 16h2'/%3E%3C/g%3E%3Cg fill='none' stroke='%23f0c94a' stroke-width='1.5'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3Cpath d='M16 22v2 M10 16h-2 M22 16h2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.1' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, pointer !important; }
@@ -131,5 +260,14 @@
   :is(.pl-panel > header, .pl-panel > header :not(button), .cw-title, .cw-title :not(button), #chatwin .mb-head, #chatwin .mb-head :not(button), #mw2#mw2#mw2#mw2) { cursor: grab !important; }
   :is(.topbtn.update.busy, #mw2#mw2#mw2#mw2) { cursor: progress !important; }
   :is(#app.pl-moving, #app.pl-moving *, #chatwin.dragging, #chatwin.dragging *, .cw-title:active, .cw-title:active *, #mw2#mw2#mw2#mw2#mw2) { cursor: grabbing !important; }
+  :is(:disabled, [disabled], :disabled *, .lb-row.anon, .ks-key.fixed, #mw2#mw2#mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, default !important; }
   :is(textarea:disabled, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: not-allowed !important; }
+  :is(#takeover:not(.free), #takeover:not(.free) *, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: none !important; }
+  @media (max-width: 920px) { :is(.pl-panel > header, .pl-panel > header :not(button), #mw2#mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, default !important; } }
 }
+
+/* the theme screen (shown under whichever theme is on, so outside the gate): only this theme's own card, which shows
+   its gunship sight in lime with amber brackets, its skull-jaw hint, and its briefing face */
+.th-card[data-id="svoboden-modern-warfare-2"] .th-shot { position: relative; }
+.th-card[data-id="svoboden-modern-warfare-2"] .th-shot::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Cg fill='none' stroke-width='1.2'%3E%3Cpath d='M60 10V32M60 48V70M18 40H52M68 40H102' stroke='%2398d538'/%3E%3Cpath d='M30 38v4M40 38v4M80 38v4M90 38v4M58 20h4M58 60h4' stroke='%2398d538' stroke-width='1'/%3E%3Cpath d='M48 32V28H52M68 28H72V32M72 48V52H68M52 52H48V48' stroke='%23dcad00' stroke-width='1.6'/%3E%3C/g%3E%3C/svg%3E") 68% 82% / 58px auto no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240' opacity='.5'%3E%3Cpath d='M30 52Q62 41 91 37L100 30L109 37Q138 41 170 52L171 116Q168 162 132 184L138 206Q172 218 192 240H8Q28 218 62 206L68 184Q32 162 29 116Z' fill='%23252520' stroke='%235c5a52' stroke-width='1.6'/%3E%3Cpath d='M36 59Q64 48 92 44L100 38L108 44Q136 48 164 59' fill='none' stroke='%235c5a52' stroke-width='1.2' stroke-dasharray='3 3'/%3E%3Cpath d='M84 196V240M100 198V240M116 196V240' stroke='%233f3d39' stroke-width='1.4'/%3E%3Cg fill='none' stroke='%23b6ae85' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M50 82V122L60 140Q70 156 86 162L100 164L114 162Q130 156 140 140L150 122V82'/%3E%3Cpath d='M87 75L67 73L45 63M67 73L61 83M113 75L133 73L155 63M133 73L139 83' stroke-width='2.4'/%3E%3Cpath d='M58 80L68 86H132L142 80M70 125H130' stroke-width='2'/%3E%3C/g%3E%3Cpath d='M100 46C95 52 89 63 92 71Q96 73 100 68Q104 73 108 71C111 63 105 52 100 46Z' fill='%23b6ae85'/%3E%3Cg fill='%23e1d6a6'%3E%3Crect x='69.0' y='89.0' width='6.6' height='13.0' rx='1.8'/%3E%3Crect x='76.8' y='89.0' width='6.6' height='14.5' rx='1.8'/%3E%3Crect x='84.6' y='89.0' width='6.6' height='15.5' rx='1.8'/%3E%3Crect x='92.4' y='89.0' width='6.6' height='16.5' rx='1.8'/%3E%3Crect x='100.2' y='89.0' width='6.6' height='16.5' rx='1.8'/%3E%3Crect x='108.0' y='89.0' width='6.6' height='15.5' rx='1.8'/%3E%3Crect x='115.8' y='89.0' width='6.6' height='14.5' rx='1.8'/%3E%3Crect x='123.6' y='89.0' width='6.6' height='13.0' rx='1.8'/%3E%3Crect x='70.5' y='108.0' width='6.2' height='12.0' rx='1.8'/%3E%3Crect x='77.9' y='108.0' width='6.2' height='13.0' rx='1.8'/%3E%3Crect x='85.3' y='108.0' width='6.2' height='14.0' rx='1.8'/%3E%3Crect x='92.7' y='108.0' width='6.2' height='14.5' rx='1.8'/%3E%3Crect x='100.1' y='108.0' width='6.2' height='14.5' rx='1.8'/%3E%3Crect x='107.5' y='108.0' width='6.2' height='14.0' rx='1.8'/%3E%3Crect x='114.9' y='108.0' width='6.2' height='13.0' rx='1.8'/%3E%3Crect x='122.3' y='108.0' width='6.2' height='12.0' rx='1.8'/%3E%3C/g%3E%3Cpath d='M100 164V170' stroke='%23b6ae85' stroke-width='2'/%3E%3Cg fill='%23b6ae85'%3E%3Ccircle cx='80' cy='146' r='2.2'/%3E%3Ccircle cx='120' cy='146' r='2.2'/%3E%3C/g%3E%3C/svg%3E") 92% 80% / 27px auto no-repeat; }
+.th-card[data-id="svoboden-modern-warfare-2"] .th-top b { font-family: "Svb Michroma", var(--font); font-weight: 400; }

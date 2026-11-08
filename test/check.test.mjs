@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, rmSync, symlinkSync, unlinkSync, writeFileSync 
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { checkManifest, checkPack, checkTheme, cssRefs } from '../scripts/check.mjs'
+import { checkManifest, checkPack, checkSheet, checkTheme, cssRefs } from '../scripts/check.mjs'
 
 // Dracula as the app ships it (its themes.json), under this pack's prefix: a theme the app takes as it is.
 const theme = (over = {}) => ({
@@ -116,7 +116,7 @@ test('the pack: every listed file there and agreeing with its entry, none left u
 
 test('a theme style sheet applies, and everything it loads is there and used', () => {
   const css = '@font-face{font-family:"Svb X";src:url("fonts/x.ttf")}'
-    + `@container style(--theme-id: svoboden-test){#app::after{background:url('data:image/svg+xml,<g transform="scale(-1,1)"/>')}}`
+    + `@container svb-root style(--theme-id: svoboden-test){#app::after{background:url('data:image/svg+xml,<g transform="scale(-1,1)"/>')}}`
   const withCss = manifest([entry({ css: './themes/test.css' })])
   const named = theme({ ui: { '--theme-id': 'svoboden-test' } })
   assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': css, 'fonts/x.ttf': '' })).errors, [])
@@ -127,7 +127,7 @@ test('a theme style sheet applies, and everything it loads is there and used', (
   assert.deepEqual(checkPack(pack(withCss, { 'test.json': named })).errors, ['themes/test.css: listed in package.json but missing'])
   assert.deepEqual(checkPack(pack(manifest(), { 'test.json': theme(), 'test.css': css, 'fonts/x.ttf': '' })).errors,
     ['themes/test.css: not listed in package.json', 'themes/fonts/x.ttf: no theme\'s CSS uses it'])
-  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': 'a{background:url(../../secret.png)}' })).errors,
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': '@container style(--theme-id: svoboden-test){a{background:url(../../secret.png)}}' })).errors,
     ['themes/test.css: url("../../secret.png") leaves themes/'])
   assert.deepEqual(checkManifest(manifest([entry({ css: './themes/test.json' })])), ['contributes.themes[0].css is not ./themes/<file>.css'])
 })
@@ -135,6 +135,51 @@ test('a theme style sheet applies, and everything it loads is there and used', (
 test('url() references: quoted or not, data URIs left out even with ")" inside', () => {
   const sheet = `a{src:url("fonts/a.ttf"),url('fonts/b.otf'),url(fonts/c.woff2);b:url('data:image/svg+xml,<g transform="scale(-1,1)"/>')}`
   assert.deepEqual(cssRefs(sheet), ['fonts/a.ttf', 'fonts/b.otf', 'fonts/c.woff2'])
+  // A comment's url() is not a reference, and #fragments point into the page, not at a file.
+  assert.deepEqual(cssRefs('/* fonts go in url("fonts/<file>") */a{mask:url(#m);src:url(fonts/a.ttf)}'), ['fonts/a.ttf'])
+})
+
+test('a sheet keeps every rule behind its own theme gate', () => {
+  const id = 'svoboden-test'
+  const gated = '@font-face{font-family:"Svb X";src:url("fonts/x.ttf")}@keyframes svb-x{to{opacity:0}}'
+    + '#mapwrap { --theme-id: none; }html{container-name:svb-root}'
+    + `@container style(--theme-id: ${id}){.tag{color:red}}@container svb-root style(--theme-id: ${id}){#app::after{content:"{"}}`
+    + `.th-card[data-id="${id}"]::after, .th-card[data-id="${id}"] b{opacity:.5}`
+  assert.deepEqual(checkSheet(gated, id), [])
+  // Copied from another theme and not re-gated: it would dress that theme instead.
+  assert.deepEqual(checkSheet('@container style(--theme-id: svoboden-other){a{b:c}}', id), ['gated on "svoboden-other", not on this theme'])
+  // Outside any gate a rule restyles every theme.
+  assert.deepEqual(checkSheet('.tag{x:y} *{cursor:none!important}', id), ['".tag" is outside the theme\'s gate', '"*" is outside the theme\'s gate'])
+  assert.deepEqual(checkSheet('@keyframes pulse{to{opacity:0}}', id), ['"@keyframes pulse" is outside the theme\'s gate'])
+  // WebKit leaves a pseudo-element under an unnamed gate on screen after the theme changes.
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${id}){.tag{x:y}@media (prefers-reduced-motion: no-preference){#app::before{x:y}}}`, id),
+    ['"#app::before" needs the svb-root gate (a pseudo-element)'])
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${id}){@keyframes svb-a{from{x:y}}.panel:after{x:y}}`, id),
+    ['".panel:after" needs the svb-root gate (a pseudo-element)'])
+  // A media condition around the gate keeps it gated; around a bare rule it doesn't.
+  assert.deepEqual(checkSheet(`@media (prefers-reduced-motion: no-preference){@container style(--theme-id: ${id}){a{b:c}}}`, id), [])
+  assert.deepEqual(checkSheet('@media (min-width:1px){a{b:c}}', id), ['"a" is outside the theme\'s gate'])
+  assert.deepEqual(checkSheet(`.th-card[data-id="${id}"], .tag{x:y}`, id), [`".th-card[data-id="${id}"], .tag" is outside the theme's gate`])
+  assert.deepEqual(checkSheet('@import url(x.css);', id), ['"@import url(x.css);" is outside the theme\'s gate'])
+})
+
+test('the pack: gating, borrowed ids, refs outside the sheet, and no cascade from a broken theme file', () => {
+  const css = '@font-face{font-family:"Svb X";src:url("fonts/x.ttf")}'
+  const withCss = manifest([entry({ css: './themes/test.css' })])
+  const named = theme({ ui: { '--theme-id': 'svoboden-test' } })
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': 'a{b:c}' })).errors, ['themes/test.css: "a" is outside the theme\'s gate'])
+  // The app loads pages from file://, where "/fonts/x.ttf" is the disk's root.
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': '@font-face{src:url(/fonts/x.ttf)}', 'fonts/x.ttf': '' })).errors,
+    ['themes/test.css: url("/fonts/x.ttf") is not relative to the sheet', 'themes/fonts/x.ttf: no theme\'s CSS uses it'])
+  // A theme without a sheet that names another theme's id would wear that theme's sheet.
+  const two = manifest([entry({ css: './themes/test.css' }), entry({ id: 'svoboden-b', label: 'B', path: './themes/b.json' })])
+  const b = theme({ id: 'svoboden-b', name: 'B', ui: { '--theme-id': 'svoboden-test' } })
+  assert.deepEqual(checkPack(pack(two, { 'test.json': named, 'test.css': css, 'fonts/x.ttf': '', 'b.json': b })).errors,
+    ['themes/b.json: ui "--theme-id" "svoboden-test" is not its own id "svoboden-b"'])
+  // A theme file that doesn't parse is one error, not three.
+  const broken = checkPack(pack(withCss, { 'test.json': '{"id": ', 'test.css': css, 'fonts/x.ttf': '' })).errors
+  assert.equal(broken.length, 1, broken.join('\n'))
+  assert.match(broken[0], /^themes\/test\.json: /)
 })
 
 test('the command fails on a broken pack, even started through a symlink', () => {

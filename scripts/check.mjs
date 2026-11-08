@@ -112,13 +112,103 @@ export function checkManifest(pkg) {
   return errors
 }
 
-/** The files a style sheet points at with url(), relative to the sheet (data: URIs left out). */
-export function cssRefs(text) {
-  return [...text.matchAll(URL_REF)].map((m) => m[1] ?? m[2] ?? m[3]).filter((ref) => ref && !ref.startsWith('data:'))
+/** A style sheet's top level: each block's prelude and body, and statements outside blocks. Comments go; strings and
+ *  unquoted url(…) are skipped whole, so the braces and "/*" a data URI may hold count for nothing. */
+export function sheetBlocks(text) {
+  const blocks = []
+  let depth = 0, prelude = '', body = '', i = 0
+  const skipString = () => {
+    const quote = text[i]
+    let j = i + 1
+    while (j < text.length && text[j] !== quote) j += text[j] === '\\' ? 2 : 1
+    const s = text.slice(i, j + 1)
+    i = j + 1
+    return s
+  }
+  while (i < text.length) {
+    let piece
+    if (text.startsWith('/*', i)) {
+      const end = text.indexOf('*/', i + 2)
+      i = end === -1 ? text.length : end + 2
+      continue
+    } else if (text[i] === '"' || text[i] === "'") {
+      piece = skipString()
+    } else if (/^url\(\s*[^\s'"]/i.test(text.slice(i, i + 6))) {
+      const end = text.indexOf(')', i)
+      piece = text.slice(i, end === -1 ? text.length : end + 1)
+      i += piece.length
+    } else {
+      piece = text[i++]
+      if (piece === '{' && depth++ === 0) continue
+      if (piece === '}' && --depth === 0) {
+        blocks.push({ prelude: prelude.trim().replace(/\s+/g, ' '), body: body.trim() })
+        prelude = body = ''
+        continue
+      }
+    }
+    if (depth === 0) prelude += piece
+    else body += piece
+  }
+  if (prelude.trim()) blocks.push({ prelude: prelude.trim().replace(/\s+/g, ' '), body: null })
+  return blocks
 }
 
-/** What is wrong with a theme's style sheet in the pack: what it points at must be there, and the theme must name
- *  itself in --theme-id, which is what its rules wait for (@container style(--theme-id: …)). */
+const squash = (s) => (s ?? '').replace(/\s+/g, '').replace(/;$/, '')
+
+/** The rules in a block (through any @media/@supports inside it) whose selectors reach ::before or ::after. */
+function pseudoRules(body) {
+  const found = []
+  for (const { prelude, body: inner } of sheetBlocks(body)) {
+    if (inner === null || /^@keyframes\b/i.test(prelude)) continue
+    if (prelude.startsWith('@')) found.push(...pseudoRules(inner))
+    else if (/::?(before|after)\b/i.test(prelude)) found.push(prelude)
+  }
+  return found
+}
+
+/** What is outside the theme's gate in its sheet: every top-level block must apply only while the theme is chosen, or be
+ *  one of the few that can't affect another theme. The gate is @container [svb-root] style(--theme-id: <id>); svb-root
+ *  (named on <html>) is what pseudo-elements need, since WebKit evaluates an unnamed query on a pseudo-element against
+ *  its element's old style and leaves it on screen after the theme changes. */
+export function checkSheet(text, id) {
+  const errors = []
+  for (const { prelude, body } of sheetBlocks(text)) {
+    const gate = /^@container (svb-root )?style\(--theme-id: ?([a-z0-9-]+)\)$/i.exec(prelude)
+    if (gate) {
+      if (gate[2] !== id) errors.push(`gated on "${gate[2]}", not on this theme`)
+      if (!gate[1]) {
+        for (const selector of pseudoRules(body ?? '')) errors.push(`"${selector.slice(0, 60)}" needs the svb-root gate (a pseudo-element)`)
+      }
+      continue
+    }
+    if (body === null) {
+      errors.push(`"${prelude}" is outside the theme's gate`)
+      continue
+    }
+    // A condition around gated rules keeps them gated: what's inside answers to the same rules.
+    if (/^@(media|supports)\b/i.test(prelude)) {
+      errors.push(...checkSheet(body, id))
+      continue
+    }
+    const allowed =
+      prelude === '@font-face'
+      || /^@keyframes svb-[a-z0-9-]+$/i.test(prelude)
+      || (prelude === '#mapwrap' && squash(body) === '--theme-id:none')
+      || (prelude === 'html' && squash(body) === 'container-name:svb-root')
+      // the theme's own card on the theme screen, shown while another theme is chosen
+      || (!prelude.startsWith('@') && prelude.split(',').every((selector) => selector.includes(id)))
+    if (!allowed) errors.push(`"${prelude.slice(0, 60)}" is outside the theme's gate`)
+  }
+  return errors
+}
+
+/** The files a style sheet points at with url(), as written (data: URIs and #fragments left out, comments ignored). */
+export function cssRefs(text) {
+  const live = sheetBlocks(text).map((b) => `${b.prelude}{${b.body ?? ''}}`).join('')
+  return [...live.matchAll(URL_REF)].map((m) => m[1] ?? m[2] ?? m[3]).filter((ref) => ref && !ref.startsWith('data:') && !ref.startsWith('#'))
+}
+
+/** What is wrong with a theme's style sheet in the pack: its gate, and what it points at, which must sit beside it. */
 function checkCss(root, entry, theme, used) {
   const file = entry.css.slice(2)
   let text
@@ -127,11 +217,13 @@ function checkCss(root, entry, theme, used) {
   } catch (error) {
     return [`${file}: ${error.code === 'ENOENT' ? 'listed in package.json but missing' : error.message}`]
   }
-  const errors = []
+  const errors = checkSheet(text, entry.id).map((e) => `${file}: ${e}`)
   if (theme?.ui?.['--theme-id'] !== entry.id) errors.push(`${file}: never applies, ${entry.path.slice(2)} has no ui "--theme-id": "${entry.id}"`)
   for (const ref of cssRefs(text)) {
+    // The app loads its pages from file://, so only a path relative to the sheet reaches the pack's files.
     const target = posix.normalize(posix.join('themes', ref))
-    if (!target.startsWith('themes/')) errors.push(`${file}: url("${ref}") leaves themes/`)
+    if (ref.startsWith('/') || ref.includes(':')) errors.push(`${file}: url("${ref}") is not relative to the sheet`)
+    else if (!target.startsWith('themes/')) errors.push(`${file}: url("${ref}") leaves themes/`)
     else if (!existsSync(join(root, target))) errors.push(`${file}: url("${ref}") is missing`)
     else used.add(target)
   }
@@ -156,20 +248,24 @@ export function checkPack(root) {
     if (!isObject(entry) || !(typeof entry.path === 'string' && PATH.test(entry.path))) continue
     const file = entry.path.slice(2)
     listed.add(file)
+    const hasCss = typeof entry.css === 'string' && CSS_PATH.test(entry.css)
+    if (hasCss) listed.add(entry.css.slice(2))
     let theme
     try {
       theme = read(file)
     } catch (error) {
       errors.push(`${file}: ${error.code === 'ENOENT' ? 'listed in package.json but missing' : error.message}`)
+      // Its sheet still counts the fonts it loads; its own errors wait until the theme file reads.
+      if (hasCss) checkCss(root, entry, undefined, used)
       continue
     }
     errors.push(...checkTheme(theme).map((e) => `${file}: ${e}`))
     if (theme?.id !== entry.id) errors.push(`${file}: id ${show(theme?.id)} is not package.json's ${show(entry.id)}`)
     if (theme?.name !== entry.label) errors.push(`${file}: name ${show(theme?.name)} is not package.json's label ${show(entry.label)}`)
-    if (typeof entry.css === 'string' && CSS_PATH.test(entry.css)) {
-      listed.add(entry.css.slice(2))
-      errors.push(...checkCss(root, entry, theme, used))
-    }
+    if (hasCss) errors.push(...checkCss(root, entry, theme, used))
+    // A theme naming another one's id would wear that theme's sheet.
+    const named = isObject(theme?.ui) ? theme.ui['--theme-id'] : undefined
+    if (named !== undefined && named !== entry.id) errors.push(`${file}: ui "--theme-id" ${show(named)} is not its own id ${show(entry.id)}`)
   }
   // null: not there to scan (reported unless simply absent).
   const files = (dir, keep) => {
