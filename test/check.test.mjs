@@ -251,6 +251,16 @@ test('W5: the svb-root gate holds pseudo-elements only, since it reaches into th
     [element('#space canvas[data-x="::after"]')])
 })
 
+test('the orbit map: element rules in the svb-root gate only when every selector is the map, hook attributes first', () => {
+  const element = (s) => `"${s}" is an element rule: the svb-root gate reaches into the orbit map, so it goes in the unnamed gate`
+  // The map resets --theme-id, so only the named gate reaches it: a theme styling the map on purpose writes it there.
+  assert.deepEqual(checkSheet(`@container svb-root style(--theme-id: ${ID}){#mapwrap #space{filter:sepia(.3)}`
+    + `:root[data-streak-milestone="3"] #mapwrap .lbl{x:y}html.behind #mapwrap>#minimap{x:y}#mapwrap{x:y}}`, ID), [])
+  // Anything else still leaks: a list mixing the map with the page, a lookalike id, or the map after another element.
+  assert.deepEqual(checkSheet(`@container svb-root style(--theme-id: ${ID}){.tag,#mapwrap{x:y}#mapwrapper{x:y}body #mapwrap{x:y}}`, ID),
+    [element('.tag,#mapwrap'), element('#mapwrapper'), element('body #mapwrap')])
+})
+
 test('S1: a charset, spaces in style() and a font url with ?#iefix are fine', () => {
   assert.deepEqual(checkSheet(`@charset "utf-8";@container style( --theme-id : ${ID} ){a{b:c}}@container svb-root style( --theme-id:${ID}){a::after{b:c}}`, ID), [])
   assert.deepEqual(cssRefs('@font-face{font-family:"Svb X";src:url(fonts/x.ttf?#iefix) format("embedded-opentype"),url( "fonts/y.woff?v=2" )}'),

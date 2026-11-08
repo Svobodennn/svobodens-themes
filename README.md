@@ -48,12 +48,15 @@ A theme can also have a style sheet, as the app's own MUR47 theme does (the app 
 
 - element rules inside `@container style(--theme-id: <id>)`. The sheet's `#mapwrap { --theme-id: none }` closes this
   gate inside the orbit map;
-- pseudo-element rules (`::before`, `::after`, `::marker`, any other `::…` and the one-colon `:before` kind), and only
-  those, inside `@container svb-root style(--theme-id: <id>)`, with `html { container-name: svb-root }` in the sheet.
-  WebKit checks an unnamed query on a pseudo-element against its element's old style, so without the name a theme's
-  decorations stay on screen after another theme is chosen. The named gate asks `<html>` and skips the `#mapwrap`
-  reset, so whatever it holds reaches into the orbit map too: element rules stay out of it, and its pseudo-element
-  rules must not match anything inside `#mapwrap` (the checker can't see that, so look).
+- pseudo-element rules (`::before`, `::after`, `::marker`, any other `::…` and the one-colon `:before` kind) inside
+  `@container svb-root style(--theme-id: <id>)`, with `html { container-name: svb-root }` in the sheet. WebKit checks
+  an unnamed query on a pseudo-element against its element's old style, so without the name a theme's decorations
+  stay on screen after another theme is chosen. The named gate asks `<html>` and skips the `#mapwrap` reset, so
+  whatever it holds reaches into the orbit map too: its pseudo-element rules must not match anything inside
+  `#mapwrap` by accident (the checker can't see that, so look);
+- the orbit map's own rules, for a theme that styles the map on purpose: also in the svb-root gate, the only gate that
+  reaches the map, each selector starting with `#mapwrap` (classes or hook attributes on `html` / `:root` may come
+  first). Any other element rule there is refused.
 
 Outside the gates a sheet holds only these:
 

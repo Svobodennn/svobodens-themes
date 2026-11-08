@@ -179,9 +179,17 @@ function checkAtRule(prelude, body, report, group) {
   else report.errors.push(group ? `"${short(prelude)}" is not allowed in a gate` : outside(prelude))
 }
 
+/** Whether every selector styles the orbit map. The map resets --theme-id, so only the svb-root gate reaches it, and a
+ *  theme that means to style the map writes its element rules there; classes and hook attributes on <html> may come
+ *  first, nothing else. */
+function mapRule(prelude) {
+  return splitList(prelude).every((selector) =>
+    /^#mapwrap(?![\w-])/.test(selector.replace(/^(?:html|:root)(?:\.[\w-]+|\[[^\]]*\])*\s+/, '')))
+}
+
 /** The rules a gate holds, at any depth. Under the unnamed gate WebKit checks a pseudo-element against its element's
  *  old style and leaves it on screen after the theme changes; the svb-root gate ignores the orbit map's reset, so it
- *  holds pseudo-elements only. */
+ *  holds pseudo-elements and the map's own rules only. */
 function checkGated(text, named, report, inPseudo = false) {
   for (const { prelude, body } of scan(text).items) {
     if (prelude.startsWith('@')) {
@@ -194,7 +202,7 @@ function checkGated(text, named, report, inPseudo = false) {
     } else if (body !== null) {
       const pseudo = inPseudo || splitList(prelude).every(hasPseudo)
       if (!named && hasPseudo(prelude)) report.errors.push(`"${short(prelude)}" needs the svb-root gate (a pseudo-element)`)
-      if (named && !pseudo && declarations(body).length) {
+      if (named && !pseudo && declarations(body).length && !mapRule(prelude)) {
         report.errors.push(`"${short(prelude)}" is an element rule: the svb-root gate reaches into the orbit map, so it goes in the unnamed gate`)
       }
       checkGated(body, named, report, pseudo)
