@@ -2,8 +2,8 @@
 // The pack's gate before it ships: package.json, every theme it lists, and theme files nothing lists.
 // The app takes a colour it can't read as another one without a word (black, white, the text colour, or magenta in its
 // native views), and one mistyped value in its themes file drops every theme, so both are caught here.
-import { readdirSync, readFileSync, realpathSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
+import { join, posix, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // The theme format's rules come from its schema, so the two can't disagree.
@@ -19,6 +19,10 @@ const UI_RULES = [
 ]
 const SEMVER = /^\d+\.\d+\.\d+$/
 const PATH = /^\.\/themes\/[^/]+\.json$/
+const CSS_PATH = /^\.\/themes\/[^/]+\.css$/
+const FONT = /\.(ttf|otf|woff2?)$/i
+// url("…"), url('…') or url(…); a quoted data URI may hold ")" of its own.
+const URL_REF = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"\s]*))\s*\)/g
 const COLORS = ['bg', 'fg', 'cursor', 'selection', 'accent']
 const REQUIRED = schema.required
 const KNOWN = new Set(Object.keys(schema.properties))
@@ -103,7 +107,34 @@ export function checkManifest(pkg) {
     if (!nonEmpty(entry.label)) errors.push(`${at}.label is empty`)
     if (entry.uiTheme !== 'vs-dark') errors.push(`${at}.uiTheme is not "vs-dark" (the app has dark themes only)`)
     if (!(typeof entry.path === 'string' && PATH.test(entry.path))) errors.push(`${at}.path is not ./themes/<file>.json`)
+    if ('css' in entry && !(typeof entry.css === 'string' && CSS_PATH.test(entry.css))) errors.push(`${at}.css is not ./themes/<file>.css`)
   })
+  return errors
+}
+
+/** The files a style sheet points at with url(), relative to the sheet (data: URIs left out). */
+export function cssRefs(text) {
+  return [...text.matchAll(URL_REF)].map((m) => m[1] ?? m[2] ?? m[3]).filter((ref) => ref && !ref.startsWith('data:'))
+}
+
+/** What is wrong with a theme's style sheet in the pack: what it points at must be there, and the theme must name
+ *  itself in --theme-id, which is what its rules wait for (@container style(--theme-id: …)). */
+function checkCss(root, entry, theme, used) {
+  const file = entry.css.slice(2)
+  let text
+  try {
+    text = readFileSync(join(root, file), 'utf8')
+  } catch (error) {
+    return [`${file}: ${error.code === 'ENOENT' ? 'listed in package.json but missing' : error.message}`]
+  }
+  const errors = []
+  if (theme?.ui?.['--theme-id'] !== entry.id) errors.push(`${file}: never applies, ${entry.path.slice(2)} has no ui "--theme-id": "${entry.id}"`)
+  for (const ref of cssRefs(text)) {
+    const target = posix.normalize(posix.join('themes', ref))
+    if (!target.startsWith('themes/')) errors.push(`${file}: url("${ref}") leaves themes/`)
+    else if (!existsSync(join(root, target))) errors.push(`${file}: url("${ref}") is missing`)
+    else used.add(target)
+  }
   return errors
 }
 
@@ -120,6 +151,7 @@ export function checkPack(root) {
   const errors = checkManifest(pkg).map((e) => `package.json: ${e}`)
   const list = Array.isArray(pkg?.contributes?.themes) ? pkg.contributes.themes : []
   const listed = new Set()
+  const used = new Set()
   for (const entry of list) {
     if (!isObject(entry) || !(typeof entry.path === 'string' && PATH.test(entry.path))) continue
     const file = entry.path.slice(2)
@@ -134,14 +166,25 @@ export function checkPack(root) {
     errors.push(...checkTheme(theme).map((e) => `${file}: ${e}`))
     if (theme?.id !== entry.id) errors.push(`${file}: id ${show(theme?.id)} is not package.json's ${show(entry.id)}`)
     if (theme?.name !== entry.label) errors.push(`${file}: name ${show(theme?.name)} is not package.json's label ${show(entry.label)}`)
+    if (typeof entry.css === 'string' && CSS_PATH.test(entry.css)) {
+      listed.add(entry.css.slice(2))
+      errors.push(...checkCss(root, entry, theme, used))
+    }
   }
-  let files = []
-  try {
-    files = readdirSync(join(root, 'themes')).filter((f) => f.endsWith('.json'))
-  } catch (error) {
-    if (error.code !== 'ENOENT') errors.push(`themes: ${error.code === 'ENOTDIR' ? 'not a folder' : error.message}`)
+  // null: not there to scan (reported unless simply absent).
+  const files = (dir, keep) => {
+    try {
+      return readdirSync(join(root, dir)).filter(keep).map((f) => `${dir}/${f}`)
+    } catch (error) {
+      if (error.code !== 'ENOENT') errors.push(`${dir}: ${error.code === 'ENOTDIR' ? 'not a folder' : error.message}`)
+      return null
+    }
   }
-  for (const f of files) if (!listed.has(`themes/${f}`)) errors.push(`themes/${f}: not listed in package.json`)
+  const sheets = files('themes', (f) => f.endsWith('.json') || f.endsWith('.css'))
+  for (const f of sheets ?? []) if (!listed.has(f)) errors.push(`${f}: not listed in package.json`)
+  // A font no theme's sheet loads is only weight in every install.
+  const fonts = sheets === null ? [] : files('themes/fonts', (f) => FONT.test(f))
+  for (const f of fonts ?? []) if (!used.has(f)) errors.push(`${f}: no theme's CSS uses it`)
   return { errors, count: list.length }
 }
 

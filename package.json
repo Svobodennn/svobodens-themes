@@ -18,10 +18,33 @@
     "dark"
   ],
   "contributes": {
-    "themes": []
+    "themes": [
+      {
+        "id": "svoboden-cyberpunk-2077",
+        "label": "Cyberpunk 2077",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cyberpunk-2077.json",
+        "css": "./themes/cyberpunk-2077.css"
+      },
+      {
+        "id": "svoboden-modern-warfare-2",
+        "label": "Modern Warfare 2",
+        "uiTheme": "vs-dark",
+        "path": "./themes/modern-warfare-2.json",
+        "css": "./themes/modern-warfare-2.css"
+      },
+      {
+        "id": "svoboden-matrix",
+        "label": "Matrix",
+        "uiTheme": "vs-dark",
+        "path": "./themes/matrix.json",
+        "css": "./themes/matrix.css"
+      }
+    ]
   },
   "scripts": {
     "check": "node scripts/check.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "preview": "node scripts/preview.mjs"
   }
 }

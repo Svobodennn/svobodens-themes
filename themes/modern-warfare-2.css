@@ -1,0 +1,135 @@
+/* Modern Warfare 2 (Svoboden's Themes): what its colours alone can't give. Every rule below applies only while this
+   theme is chosen (its tokens set --theme-id: svoboden-modern-warfare-2 on :root), so the other themes look as they did;
+   the orbit map is left as it is. All art is drawn here: generic military motifs, no logos, no traced artwork.
+   Fonts: Barlow Condensed and Michroma (SIL Open Font License, fonts/OFL-*.txt). */
+
+@font-face { font-family: "Svb Barlow Condensed"; src: url("fonts/BarlowCondensed-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Svb Barlow Condensed"; src: url("fonts/BarlowCondensed-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Svb Michroma"; src: url("fonts/Michroma-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+
+/* the orbit map keeps its own look */
+#mapwrap { --theme-id: none; }
+
+/* motion, named for this theme alone: nothing runs them except the gated rules below, and only without "reduce motion" */
+@keyframes svb-mw2-sweep { to { transform: rotate(360deg); } }
+@keyframes svb-mw2-type {
+  0% { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0, 0 33.4%, 0 33.4%); }
+  32% { clip-path: polygon(0 0, 100% 0, 100% 0, 100% 0, 100% 33.4%, 0 33.4%); }
+  32.01% { clip-path: polygon(0 0, 100% 0, 100% 33.4%, 0 33.4%, 0 66.7%, 0 66.7%); }
+  66% { clip-path: polygon(0 0, 100% 0, 100% 33.4%, 100% 33.4%, 100% 66.7%, 0 66.7%); }
+  66.01% { clip-path: polygon(0 0, 100% 0, 100% 66.7%, 0 66.7%, 0 100%, 0 100%); }
+  100% { clip-path: polygon(0 0, 100% 0, 100% 66.7%, 100% 66.7%, 100% 100%, 0 100%); }
+}
+
+@container style(--theme-id: svoboden-modern-warfare-2) {
+  /* menu lettering: thin, condensed, tracked caps, as in the 2009 menu list; tabs cut on the slant */
+  .tag { font: 600 1.14em/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.14em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+  .kpi label, #ticker .lbl { font-family: "Svb Barlow Condensed", var(--font); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+  .kpi label { font-size: 0.86em; line-height: 1.016; }
+  #ticker .lbl { font-size: 0.96em; }
+
+  /* the brand in the extended briefing face, stamped on a pair of dog tags */
+  .brand .stack b, .brand .stack small { font-family: "Svb Michroma", var(--font); font-weight: 400; }
+  .brand .stack b { font-size: 0.8em; letter-spacing: 0.09em; }
+  .brand .stack small { letter-spacing: 0.3em; }
+  .brand .stack { position: relative; isolation: isolate; }
+  .brand .stack::before, .brand .stack::after {
+    content: ""; position: absolute; inset: -4px -5px; z-index: -1;
+    border: 1px solid rgba(225, 214, 166, 0.26); border-radius: 7px; box-shadow: inset 0 0 0 2px rgba(20, 19, 15, 0.45), inset 0 0 0 3px rgba(225, 214, 166, 0.1);
+    background: linear-gradient(160deg, rgba(225, 214, 166, 0.1), rgba(182, 174, 133, 0.03) 55%, rgba(225, 214, 166, 0.08));
+    pointer-events: none;
+  }
+  .brand .stack::after { z-index: -2; transform: translate(5px, 4px) rotate(-4deg); border-color: rgba(182, 174, 133, 0.16); background: none; box-shadow: none; }
+
+  /* top bar: crushed black over a compass tape, its heading marked in lime */
+  #top {
+    background:
+      linear-gradient(var(--accent), var(--accent)) 50% 100% / 1px 7px no-repeat,
+      repeating-linear-gradient(90deg, rgba(223, 221, 220, 0.3) 0 1px, transparent 1px 48px) 0 100% / 100% 5px no-repeat,
+      repeating-linear-gradient(90deg, rgba(223, 221, 220, 0.13) 0 1px, transparent 1px 8px) 0 100% / 100% 3px no-repeat,
+      linear-gradient(180deg, rgba(63, 61, 57, 0.5), rgba(20, 19, 15, 0.86) 70%);
+  }
+
+  /* panel headers: night-vision scanlines in NVG teal; the base's passing light becomes the menu's amber */
+  .panel > header {
+    background:
+      repeating-linear-gradient(0deg, rgba(45, 148, 133, 0.13) 0 1px, transparent 1px 3px),
+      linear-gradient(90deg, rgba(63, 61, 57, 0.55), rgba(37, 37, 32, 0.2) 70%, transparent);
+    border-bottom-color: rgba(var(--accent-rgb), 0.24);
+  }
+  .panel > header::after { background: linear-gradient(90deg, transparent, rgba(var(--amber-rgb), 0.16), transparent); }
+
+  /* corners: the gunship sight's thin white-hot brackets */
+  .panel::before, .panel::after, #activity::before, #activity::after { width: 10px; height: 10px; border-color: rgba(223, 221, 220, 0.6); }
+  .panel::before, #activity::before { top: -3px; left: -3px; border-width: 1px 0 0 1px; }
+  .panel::after, #activity::after { bottom: -3px; right: -3px; border-width: 0 1px 1px 0; }
+
+  /* the 2009 menu's amber glow on what you point at */
+  .topbtn:not(.primary, .update, #sound.on):hover { color: var(--amber); border-color: var(--amber); box-shadow: 0 0 10px rgba(var(--amber-rgb), 0.3); }
+  .card:not(.st-waiting):hover { border-color: rgba(var(--amber-rgb), 0.75); }
+
+  /* the UAV minimap, low on the left edge: square plate, range rings, you in lime, and its sweep */
+  #app::before {
+    content: "UAV"; position: fixed; left: 15px; bottom: 126px; z-index: 48;
+    box-sizing: border-box; width: 34px; height: 46px; padding-top: 37px; text-align: center; text-indent: 0.2em;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 34'%3E%3Crect x='.5' y='.5' width='33' height='33' fill='%2314130f' fill-opacity='.55' stroke='%23dfdddc' stroke-opacity='.4'/%3E%3Cg fill='none' stroke='%235fc4b4' stroke-opacity='.45' stroke-width='.6'%3E%3Ccircle cx='17' cy='17' r='5'/%3E%3Ccircle cx='17' cy='17' r='10'/%3E%3Ccircle cx='17' cy='17' r='15'/%3E%3C/g%3E%3Cpath d='M17 1V33M1 17H33' stroke='%23dfdddc' stroke-opacity='.18' stroke-width='.5'/%3E%3Cpath d='M15.4 4.2L17 1.6L18.6 4.2Z' fill='%23dfdddc' fill-opacity='.6'/%3E%3Cpath d='M17 13.2L19.8 20L17 18.6L14.2 20Z' fill='%2398d538'/%3E%3C/svg%3E") 0 0 / 34px 34px no-repeat;
+    color: rgba(223, 221, 220, 0.45); font: 600 8px/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.2em;
+    pointer-events: none;
+  }
+  #top::after {
+    content: ""; position: fixed; left: 17px; bottom: 140px; z-index: 48; width: 30px; height: 30px; border-radius: 50%;
+    background: conic-gradient(transparent 0 240deg, rgba(95, 196, 180, 0.03) 240deg, rgba(95, 196, 180, 0.13) 350deg, rgba(95, 196, 180, 0.5) 359deg, transparent 0);
+    pointer-events: none;
+  }
+
+  /* the skull-jaw balaclava, its fabric printed with a jaw, as a faint watermark */
+  #app::after {
+    content: ""; position: fixed; right: 2.4vw; bottom: 4.5vh; z-index: 48; width: 25vh; height: 28vh;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 240'%3E%3Cpath d='M30 52Q62 41 91 37L100 30L109 37Q138 41 170 52L171 116Q168 162 132 184L138 206Q172 218 192 240H8Q28 218 62 206L68 184Q32 162 29 116Z' fill='%23252520' stroke='%235c5a52' stroke-width='1.6'/%3E%3Cpath d='M36 59Q64 48 92 44L100 38L108 44Q136 48 164 59' fill='none' stroke='%235c5a52' stroke-width='1.2' stroke-dasharray='3 3'/%3E%3Cpath d='M84 196V240M100 198V240M116 196V240' stroke='%233f3d39' stroke-width='1.4'/%3E%3Cg fill='none' stroke='%23b6ae85' stroke-width='3' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M50 82V122L60 140Q70 156 86 162L100 164L114 162Q130 156 140 140L150 122V82'/%3E%3Cpath d='M87 75L67 73L45 63M67 73L61 83M113 75L133 73L155 63M133 73L139 83' stroke-width='2.4'/%3E%3Cpath d='M58 80L68 86H132L142 80M70 125H130' stroke-width='2'/%3E%3C/g%3E%3Cpath d='M100 46C95 52 89 63 92 71Q96 73 100 68Q104 73 108 71C111 63 105 52 100 46Z' fill='%23b6ae85'/%3E%3Cg fill='%23e1d6a6'%3E%3Crect x='69.0' y='89.0' width='6.6' height='13.0' rx='1.8'/%3E%3Crect x='76.8' y='89.0' width='6.6' height='14.5' rx='1.8'/%3E%3Crect x='84.6' y='89.0' width='6.6' height='15.5' rx='1.8'/%3E%3Crect x='92.4' y='89.0' width='6.6' height='16.5' rx='1.8'/%3E%3Crect x='100.2' y='89.0' width='6.6' height='16.5' rx='1.8'/%3E%3Crect x='108.0' y='89.0' width='6.6' height='15.5' rx='1.8'/%3E%3Crect x='115.8' y='89.0' width='6.6' height='14.5' rx='1.8'/%3E%3Crect x='123.6' y='89.0' width='6.6' height='13.0' rx='1.8'/%3E%3Crect x='70.5' y='108.0' width='6.2' height='12.0' rx='1.8'/%3E%3Crect x='77.9' y='108.0' width='6.2' height='13.0' rx='1.8'/%3E%3Crect x='85.3' y='108.0' width='6.2' height='14.0' rx='1.8'/%3E%3Crect x='92.7' y='108.0' width='6.2' height='14.5' rx='1.8'/%3E%3Crect x='100.1' y='108.0' width='6.2' height='14.5' rx='1.8'/%3E%3Crect x='107.5' y='108.0' width='6.2' height='14.0' rx='1.8'/%3E%3Crect x='114.9' y='108.0' width='6.2' height='13.0' rx='1.8'/%3E%3Crect x='122.3' y='108.0' width='6.2' height='12.0' rx='1.8'/%3E%3C/g%3E%3Cpath d='M100 164V170' stroke='%23b6ae85' stroke-width='2'/%3E%3Cg fill='%23b6ae85'%3E%3Ccircle cx='80' cy='146' r='2.2'/%3E%3Ccircle cx='120' cy='146' r='2.2'/%3E%3C/g%3E%3C/svg%3E") 50% 100% / contain no-repeat;
+    opacity: 0.1; pointer-events: none;
+  }
+
+  /* the gunship's white-hot sight and weapon list, behind the session cards */
+  #sessions::after {
+    content: ""; position: fixed; z-index: -1; left: 64px; top: 66px; bottom: calc(46px + max(176px, 27vh)); width: max(250px, 21vw - 3px);
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 224'%3E%3Cg fill='none' stroke='%23dfdddc' stroke-width='1.2'%3E%3Cpath d='M22 116H94M126 116H198M110 36V100M110 132V196'/%3E%3Cpath d='M32 113v6M42 113v6M52 113v6M62 113v6M72 113v6M82 113v6M138 113v6M148 113v6M158 113v6M168 113v6M178 113v6M188 113v6M107 46h6M107 56h6M107 66h6M107 76h6M107 86h6M107 146h6M107 156h6M107 166h6M107 176h6M107 186h6' stroke-width='1'/%3E%3Cpath d='M84 100V90H94M126 90H136V100M136 132V142H126M94 142H84V132' stroke-width='1.6'/%3E%3Cpath d='M6 40V28H18M202 28H214V40M214 192V204H202M18 204H6V192' stroke='%23afafaf' stroke-width='1'/%3E%3Crect x='147' y='4' width='36' height='15'/%3E%3C/g%3E%3Cg fill='%23dfdddc' font-family='DIN Condensed, DIN Alternate, Arial Narrow, sans-serif' font-weight='700' font-size='11' letter-spacing='1' text-anchor='middle'%3E%3Ctext x='60' y='16'%3E25MM%3C/text%3E%3Ctext x='87' y='16'%3E%C2%B7%3C/text%3E%3Ctext x='113' y='16'%3E40MM%3C/text%3E%3Ctext x='138' y='16'%3E%C2%B7%3C/text%3E%3Ctext x='165' y='16'%3E105MM%3C/text%3E%3Ctext x='22' y='220' text-anchor='start'%3ERDY%3C/text%3E%3Ctext x='198' y='220' text-anchor='end'%3ERNG 1840%3C/text%3E%3C/g%3E%3C/svg%3E") 50% 42% / 220px auto no-repeat;
+    opacity: 0.12; pointer-events: none;
+  }
+
+  /* the mission briefing, typed in the corner as the level loads */
+  #sessions::before {
+    content: "OP. SVOBODEN\A DAY 03 - 03:47:[22]Z\A GRID 38S MB 4415";
+    position: fixed; z-index: -1; left: 76px; bottom: calc(58px + max(176px, 27vh));
+    white-space: pre; color: rgba(225, 214, 166, 0.2);
+    font: 400 8.5px/1.9 "Svb Michroma", var(--font); letter-spacing: 0.12em;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    #top::after { animation: svb-mw2-sweep 5s linear infinite; }
+    #sessions::before { animation: svb-mw2-type 2.4s steps(14, end) 0.6s both; }
+  }
+  @media (max-width: 1250px) { #sessions::after { width: max(230px, 26vw - 4px); } }
+  /* one column on a narrow window: the fixed pieces would land on the panels, so they stand down */
+  @media (max-width: 920px) { #app::before, #app::after, #top::after, #sessions::before, #sessions::after { content: none; } }
+}
+
+/* an amber holographic sight as the mouse cursor: resting, over something clickable (tightened), pressed (flash).
+   The orbit map keeps its own (its children would otherwise inherit the sight), and so do text fields and the app's
+   working cursors: resize lines, drag strips, dragging, busy, disabled. */
+@container style(--theme-id: svoboden-modern-warfare-2) {
+  * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
+  :is(#activity .vs-ab, #board-view .lb-row, #git .vs-al, #git .vs-db, #git .vs-ph, #git .vs-r, #git .vs-si, #git .vs-sticky, #git .vs-sw, #git .vs-tab, #git .vs-tb, #hud button, #takeover.free, #viewctl button, .arc-btn, .askbox button, .brand, .card, .card .lights i, .dg-acts button, .dp-end, .dp-x, .gchip, .h-btns button, .hk-row button, .ks-all, .ks-key, .ks-undo, .lb-row, .lb-seg button, .lights i, .ln, .lvb[data-act], .mb.peek.fire, .mb.peek.note, .mb.peek.online, .mb.peek.update, .mb.peek.xp, .mb-actions button, .mb-input .send, .mb-more, .mb-msg.failed .b, .mb-switch button, .mb-text, .mb-x, .mn-btn, .mn-copy, .mn-ctx button, .mn-main[data-act], .mn-pick button, .mn-send, .mn-status, .mn-tabs button, .pie .hub, .pie .slice, .pk-bar button, .pk-crumbs span, .pk-ctx button, .pk-foot button, .pk-hid, .pk-place, .rf, .sc-ctx button, .sc-tile, .th-card, .topbtn, .wk, .yc, [role=button], a[href], button, input[type=button], input[type=checkbox], input[type=radio], input[type=submit], label, select, summary), :is(#activity .vs-ab, #board-view .lb-row, #git .vs-al, #git .vs-db, #git .vs-ph, #git .vs-r, #git .vs-si, #git .vs-sticky, #git .vs-sw, #git .vs-tab, #git .vs-tb, #hud button, #takeover.free, #viewctl button, .arc-btn, .askbox button, .brand, .card, .card .lights i, .dg-acts button, .dp-end, .dp-x, .gchip, .h-btns button, .hk-row button, .ks-all, .ks-key, .ks-undo, .lb-row, .lb-seg button, .lights i, .ln, .lvb[data-act], .mb.peek.fire, .mb.peek.note, .mb.peek.online, .mb.peek.update, .mb.peek.xp, .mb-actions button, .mb-input .send, .mb-more, .mb-msg.failed .b, .mb-switch button, .mb-text, .mb-x, .mn-btn, .mn-copy, .mn-ctx button, .mn-main[data-act], .mn-pick button, .mn-send, .mn-status, .mn-tabs button, .pie .hub, .pie .slice, .pk-bar button, .pk-crumbs span, .pk-ctx button, .pk-foot button, .pk-hid, .pk-place, .rf, .sc-ctx button, .sc-tile, .th-card, .topbtn, .wk, .yc, [role=button], a[href], button, input[type=button], input[type=checkbox], input[type=radio], input[type=submit], label, select, summary) * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.3'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3Cpath d='M16 22v2 M10 16h-2 M22 16h2'/%3E%3C/g%3E%3Cg fill='none' stroke='%23f0c94a' stroke-width='1.5'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3Cpath d='M16 22v2 M10 16h-2 M22 16h2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.1' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, pointer !important; }
+  :is(:active, #mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='2.8'%3E%3Ccircle cx='16' cy='16' r='10.5'/%3E%3Cpath d='M16 26.5v3 M5.5 16h-3 M26.5 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1'%3E%3Ccircle cx='16' cy='16' r='10.5'/%3E%3Cpath d='M16 26.5v3 M5.5 16h-3 M26.5 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.3' fill='%23f2f0ec' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
+  :is(#mapwrap, #mw2#mw2#mw2#mw2) { cursor: auto !important; }
+  :is(textarea, input:not([type]), input[type=text], input[type=search], [contenteditable=""], [contenteditable=true], #mw2#mw2#mw2#mw2) { cursor: text !important; }
+  :is(.pl-sash.y, .pl-gsash.y, body:has(#app.pl-rows), body:has(#app.pl-rows) *, #mw2#mw2#mw2#mw2) { cursor: row-resize !important; }
+  :is(.pl-sash.x, .pl-gsash.x, body:has(#app.pl-cols), body:has(#app.pl-cols) *, #mw2#mw2#mw2#mw2) { cursor: col-resize !important; }
+  :is(#git .vs-sash-v, #mw2#mw2#mw2#mw2) { cursor: ew-resize !important; }
+  :is(#git .vs-sash-h, #mw2#mw2#mw2#mw2) { cursor: ns-resize !important; }
+  :is(.cw-resize, #mw2#mw2#mw2#mw2) { cursor: nwse-resize !important; }
+  :is(.pl-panel > header, .pl-panel > header :not(button), .cw-title, .cw-title :not(button), #chatwin .mb-head, #chatwin .mb-head :not(button), #mw2#mw2#mw2#mw2) { cursor: grab !important; }
+  :is(.topbtn.update.busy, #mw2#mw2#mw2#mw2) { cursor: progress !important; }
+  :is(#app.pl-moving, #app.pl-moving *, #chatwin.dragging, #chatwin.dragging *, .cw-title:active, .cw-title:active *, #mw2#mw2#mw2#mw2#mw2) { cursor: grabbing !important; }
+  :is(textarea:disabled, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: not-allowed !important; }
+}

@@ -3,9 +3,9 @@ import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { checkManifest, checkPack, checkTheme } from '../scripts/check.mjs'
+import { checkManifest, checkPack, checkTheme, cssRefs } from '../scripts/check.mjs'
 
 // Dracula as the app ships it (its themes.json), under this pack's prefix: a theme the app takes as it is.
 const theme = (over = {}) => ({
@@ -28,6 +28,7 @@ const pack = (pkg, files) => {
   mkdirSync(join(root, 'themes'))
   writeFileSync(join(root, 'package.json'), JSON.stringify(pkg))
   for (const [name, body] of Object.entries(files)) {
+    mkdirSync(dirname(join(root, 'themes', name)), { recursive: true })
     writeFileSync(join(root, 'themes', name), typeof body === 'string' ? body : JSON.stringify(body))
   }
   return root
@@ -111,6 +112,29 @@ test('the pack: every listed file there and agreeing with its entry, none left u
   rmSync(join(fileNotFolder, 'themes'), { recursive: true })
   writeFileSync(join(fileNotFolder, 'themes'), '')
   assert.deepEqual(checkPack(fileNotFolder).errors, ['themes: not a folder'])
+})
+
+test('a theme style sheet applies, and everything it loads is there and used', () => {
+  const css = '@font-face{font-family:"Svb X";src:url("fonts/x.ttf")}'
+    + `@container style(--theme-id: svoboden-test){#app::after{background:url('data:image/svg+xml,<g transform="scale(-1,1)"/>')}}`
+  const withCss = manifest([entry({ css: './themes/test.css' })])
+  const named = theme({ ui: { '--theme-id': 'svoboden-test' } })
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': css, 'fonts/x.ttf': '' })).errors, [])
+  // Without its --theme-id the sheet's rules wait for a theme that never comes.
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': theme(), 'test.css': css, 'fonts/x.ttf': '' })).errors,
+    ['themes/test.css: never applies, themes/test.json has no ui "--theme-id": "svoboden-test"'])
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': css })).errors, ['themes/test.css: url("fonts/x.ttf") is missing'])
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named })).errors, ['themes/test.css: listed in package.json but missing'])
+  assert.deepEqual(checkPack(pack(manifest(), { 'test.json': theme(), 'test.css': css, 'fonts/x.ttf': '' })).errors,
+    ['themes/test.css: not listed in package.json', 'themes/fonts/x.ttf: no theme\'s CSS uses it'])
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': 'a{background:url(../../secret.png)}' })).errors,
+    ['themes/test.css: url("../../secret.png") leaves themes/'])
+  assert.deepEqual(checkManifest(manifest([entry({ css: './themes/test.json' })])), ['contributes.themes[0].css is not ./themes/<file>.css'])
+})
+
+test('url() references: quoted or not, data URIs left out even with ")" inside', () => {
+  const sheet = `a{src:url("fonts/a.ttf"),url('fonts/b.otf'),url(fonts/c.woff2);b:url('data:image/svg+xml,<g transform="scale(-1,1)"/>')}`
+  assert.deepEqual(cssRefs(sheet), ['fonts/a.ttf', 'fonts/b.otf', 'fonts/c.woff2'])
 })
 
 test('the command fails on a broken pack, even started through a symlink', () => {
