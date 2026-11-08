@@ -71,9 +71,19 @@ anywhere, as each acts on every theme even inside a gate: an `@property --theme-
 List the files under `contributes.themes` in `package.json`, then check the pack:
 
 ```sh
-npm run check   # package.json, every theme, its sheet's gate, and the fonts it loads
+npm run check   # package.json, every theme, its sheet's gate, the fonts it loads and its sounds
 npm test        # the checker's and preview script's tests
 ```
+
+## Sounds
+
+Each theme brings its own sounds for the app's moments: Matrix an old phone ringing and modem chirps, Cyberpunk 2077 a
+holocall and a HUD alert, Modern Warfare 2 a missile warning and radio squelch, and a few more each, for notices, level-ups,
+streaks and a badge put on display. They are made in code, not recorded or taken from the film or games:
+`npm run sfx` (`scripts/make-sfx.mjs`) synthesizes them into `themes/sfx/<slug>/` as small WAV files, each as loud as the
+app's own sound for that moment, and the themes play them with `"--sfx-<name>"` tokens (the app's theme hooks). Run it
+again after changing a sound; `npm test` fails while a file is out of date. `npm run preview` and the playground install
+them with the style sheets; the playground's sound box (off at first) lets them play and lists each theme's sounds.
 
 ## Terminal extras
 

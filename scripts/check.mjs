@@ -3,9 +3,11 @@
 // The app takes a colour it can't read as another one without a word (black, white, the text colour, or magenta in its
 // native views), and one mistyped value in its themes file drops every theme, so both are caught here.
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
-import { join, posix, resolve } from 'node:path'
+import { join, posix, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { bare, pieces, scan, splitList, unescape } from './css-scan.mjs'
+import { MAX_SOUND_BYTES, SOUND_NAMES } from './sfx/names.mjs'
+import { wavErrors } from './sfx/wav.mjs'
 
 // The theme format's rules come from its schema, so the two can't disagree.
 const schema = JSON.parse(readFileSync(new URL('../schemas/theme.schema.json', import.meta.url), 'utf8'))
@@ -275,6 +277,71 @@ function checkCss(root, entry, theme, used, keyframes) {
   return errors
 }
 
+const SOUNDS = new Set(SOUND_NAMES)
+// hooks.js's soundFile: the app plays only a plain path from its web folder, and no way out of it.
+const SOUND_PATH = /^[\w-][\w ./-]*$/
+const UP = /(^|\/)\.\.(\/|$)/
+
+/** The pack file (themes/sfx/…) a `--sfx-<name>` value plays once installed under themes/<pack>/: '' for none, null for
+ *  a value the app wouldn't play or that isn't one of the pack's own sounds. Quotes and spaces around it as the app
+ *  takes them. */
+function soundTarget(value, pack) {
+  const v = String(value).trim().replace(/^(["'])(.*)\1$/, '$2')
+  if (v === 'none') return ''
+  if (!SOUND_PATH.test(v) || UP.test(v)) return null
+  const path = posix.normalize(v)
+  const prefix = `themes/${pack}/sfx/`
+  if (!path.startsWith(prefix) || !/\.wav$/i.test(path)) return null
+  return `themes/sfx/${path.slice(prefix.length)}`
+}
+
+/** A theme's sound tokens: their errors, and each pack file they play with who points at it (into `refs`). */
+function checkSounds(file, ui, pack, refs) {
+  const errors = []
+  for (const [key, value] of Object.entries(ui)) {
+    if (!key.startsWith('--sfx-')) continue
+    if (!SOUNDS.has(key.slice('--sfx-'.length))) {
+      errors.push(`${file}: ui "${key}" is not a sound the app plays`)
+      continue
+    }
+    const target = typeof value === 'string' ? soundTarget(value, pack) : null
+    if (target === null) errors.push(`${file}: ui "${key}" ${show(value)} is not none or a .wav under themes/${pack}/sfx/`)
+    else if (target) refs.set(target, [...(refs.get(target) ?? []), `${file}: ui "${key}"`])
+  }
+  return errors
+}
+
+/** The sound files themes point at (there, a WAV the app plays as it is, small), and the ones none does. */
+function checkSoundFiles(root, refs) {
+  const errors = []
+  for (const [target, by] of refs) {
+    let buf
+    try {
+      buf = readFileSync(join(root, target))
+    } catch (error) {
+      if (error.code === 'ENOENT') errors.push(...by.map((who) => `${who} points at ${target}, which is missing`))
+      else errors.push(`${target}: ${error.message}`)
+      continue
+    }
+    if (buf.length > MAX_SOUND_BYTES) errors.push(`${target}: ${Math.ceil(buf.length / 1024)} KB, over the ${MAX_SOUND_BYTES / 1024} KB cap`)
+    errors.push(...wavErrors(buf).map((e) => `${target}: ${e}`))
+  }
+  const dir = join(root, 'themes/sfx')
+  let found = []
+  try {
+    found = readdirSync(dir, { recursive: true, withFileTypes: true }).filter((d) => d.isFile())
+  } catch (error) {
+    // ENOTDIR from themes itself being a file is reported once, by the theme files' own scan.
+    if (error.code === 'ENOTDIR' ? existsSync(dir) : error.code !== 'ENOENT') errors.push(`themes/sfx: ${error.code === 'ENOTDIR' ? 'not a folder' : error.message}`)
+  }
+  // Dot files (Finder's .DS_Store) are no sound.
+  const files = found.map((d) => posix.join('themes/sfx', relative(dir, join(d.parentPath, d.name)).split(sep).join('/')))
+  for (const f of files.filter((f) => !f.split('/').some((s) => s.startsWith('.'))).sort()) {
+    if (!refs.has(f)) errors.push(`${f}: no theme uses it`)
+  }
+  return errors
+}
+
 /** The pack under `root`: package.json, every theme it lists (its file there and agreeing with its entry) and theme
  *  files nothing lists. Each error starts with its file. */
 export function checkPack(root) {
@@ -290,6 +357,7 @@ export function checkPack(root) {
   const listed = new Set()
   const used = new Set()
   const keyframes = new Map()
+  const sounds = new Map()
   for (const entry of list) {
     if (!isObject(entry) || !(typeof entry.path === 'string' && PATH.test(entry.path))) continue
     const file = entry.path.slice(2)
@@ -312,7 +380,9 @@ export function checkPack(root) {
     // A theme naming another one's id would wear that theme's sheet.
     const named = isObject(theme?.ui) ? theme.ui['--theme-id'] : undefined
     if (named !== undefined && named !== entry.id) errors.push(`${file}: ui "--theme-id" ${show(named)} is not its own id ${show(entry.id)}`)
+    if (isObject(theme?.ui)) errors.push(...checkSounds(file, theme.ui, pkg.name, sounds))
   }
+  errors.push(...checkSoundFiles(root, sounds))
   // null: not there to scan (reported unless simply absent).
   const files = (dir, keep) => {
     try {

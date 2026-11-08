@@ -3,7 +3,7 @@
 // MUR47 theme, so a dev build there (app/dev.sh) shows it:
 //   - the themes, after the app's own in web/themes/themes.json (read once at launch: restart the app after a change);
 //   - their style sheets and fonts in web/themes/<pack name>/, linked from the pages that load the app's theme sheets
-//     (⌘R reloads them).
+//     (⌘R reloads them), and their sounds in web/themes/<pack name>/sfx/, where the themes' --sfx tokens point.
 // It edits tracked files of that checkout (themes.json and the three pages); `--undo` takes out only what it put there
 // and leaves other changes in that folder alone. Run again freely: the pack's previous themes, files and links are
 // replaced, never added twice. Either way everything is worked out before anything is written, so a page it can't patch
@@ -95,6 +95,14 @@ function undo(target) {
   return `${theirs.length - themes.length} themes and the links in ${PAGES.join(', ')} taken out, themes/${name} removed`
 }
 
+/** Copies the pack's own files into the app's web folder, `folder` (web/themes/<pack name>/): the style sheets, their
+ *  fonts and the sounds the themes' --sfx tokens point at (themes/sfx/ as sfx/). */
+export function copyPack(root, folder, sheets) {
+  for (const sheet of sheets) cpSync(join(root, 'themes', sheet), join(folder, sheet))
+  cpSync(join(root, 'themes/fonts'), join(folder, 'fonts'), { recursive: true })
+  if (existsSync(join(root, 'themes/sfx'))) cpSync(join(root, 'themes/sfx'), join(folder, 'sfx'), { recursive: true })
+}
+
 function main(target) {
   const { errors } = checkPack(ROOT)
   if (errors.length) throw new Error(errors.join('\n'))
@@ -117,10 +125,9 @@ function main(target) {
   const folder = join(web, 'themes', pkg.name)
   rmSync(folder, { recursive: true, force: true })
   mkdirSync(folder, { recursive: true })
-  for (const sheet of sheets) cpSync(join(ROOT, 'themes', sheet), join(folder, sheet))
-  cpSync(join(ROOT, 'themes/fonts'), join(folder, 'fonts'), { recursive: true })
+  copyPack(ROOT, folder, sheets)
   for (const [file, , html] of pages) writeFileSync(file, html)
-  return `${ours.length} themes after the app's ${themes.length - ours.length}, ${sheets.length} style sheets linked in ${PAGES.join(', ')}`
+  return `${ours.length} themes after the app's ${themes.length - ours.length}, ${sheets.length} style sheets linked in ${PAGES.join(', ')}, their sounds in themes/${pkg.name}/sfx`
 }
 
 const real = (p) => {

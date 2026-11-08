@@ -46,6 +46,7 @@
     "check": "node scripts/check.mjs",
     "test": "node --test",
     "preview": "node scripts/preview.mjs",
-    "playground": "node scripts/playground.mjs"
+    "playground": "node scripts/playground.mjs",
+    "sfx": "node scripts/make-sfx.mjs"
   }
 }

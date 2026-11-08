@@ -1,12 +1,21 @@
-// The last script in a playground frame, after the page's own: the app's sounds only when the panel's "sounds" is on
-// (a page played them without asking, and Safari would refuse a page that wasn't clicked); hit() still times the badge.
+// The last script in a playground frame, after the page's own: sounds, the app's and the theme's, only when the panel's
+// sound box is ticked (a page played them without asking, and Safari would refuse a page that wasn't clicked); hit()
+// still times the badge. Hooks.sound plays a theme's file on its own (the dashboard's pings), so it waits too, still
+// telling the caller whether the theme has one.
 (() => {
-  const real = window.Sfx;
-  if (!real) return;
   const on = () => !!(window.parent.PG && window.parent.PG.sound());
-  window.Sfx = Object.assign(Object.create(real), {
-    play: (...a) => (on() ? real.play(...a) : undefined),
-    sample: (...a) => (on() ? real.sample(...a) : undefined),
-    preload: (...a) => (on() ? real.preload(...a) : undefined),
-  });
+  const sfx = window.Sfx;
+  if (sfx) {
+    window.Sfx = Object.assign(Object.create(sfx), {
+      play: (...a) => (on() ? sfx.play(...a) : undefined),
+      sample: (...a) => (on() ? sfx.sample(...a) : undefined),
+      preload: (...a) => (on() ? sfx.preload(...a) : undefined),
+    });
+  }
+  const hooks = window.Hooks;
+  if (hooks) {
+    window.Hooks = Object.assign(Object.create(hooks), {
+      sound: (name) => (on() ? hooks.sound(name) : !!hooks.soundOf(name)),
+    });
+  }
 })();

@@ -85,6 +85,7 @@
     if (!byId.has(id) || id === current) return;
     current = id;
     repaint();
+    soundRow();
     $('pg-theme').value = id;
     $('pg-current').textContent = byId.get(id).name + (id === kept ? '' : ' (pointed at)');
   }
@@ -258,7 +259,7 @@
       card.onclick = () => {
         clearTimeout(timer);
         choose(card.dataset.id);
-        hooks('dash')?.pulse('theme-kept', { value: card.dataset.id }, { ms: 1500 });
+        themeKept(card.dataset.id);
         cards.forEach((c) => {
           c.classList.toggle('on', c === card);
           c.querySelector('.th-name em').textContent = c === card ? 'ACTIVE' : '';
@@ -463,16 +464,35 @@
     const H = hooks('dash');
     streak = run;
     H.set('streak', run);
-    if (mark) H.pulse('streak-milestone', { value: mark }, { ms: 3000 });
-    if (broke) H.pulse('streak-break', { value: broke });
+    if (mark) milestone(mark);
+    if (broke) streakBreak(broke);
+  }
+  // app.js: each moment, and the theme's sound for it (Sfx.play: the theme-only names play only a theme's file).
+  const dashSfx = (name) => frames.dash.win.Sfx?.play(name);
+  function milestone(mark) {
+    hooks('dash').pulse('streak-milestone', { value: mark }, { ms: 3000 });
+    dashSfx('streak');
+  }
+  function streakBreak(run) {
+    hooks('dash').pulse('streak-break', { value: run });
+    dashSfx('streak-break');
+  }
+  function back(step) {
+    hooks('dash').pulse('back', { value: step });
+    dashSfx('back');
+  }
+  // cloud.js, a theme chosen on the theme screen or a friend's card.
+  function themeKept(id) {
+    hooks('dash').pulse('theme-kept', { value: id }, { ms: 1500 });
+    dashSfx('theme-kept');
   }
   // app.js setIdle()
   let idleFor = '';
   function setIdle(seconds) {
     const H = hooks('dash');
-    const { level: step, back } = H.logic.idleStep(idleFor, seconds);
+    const { level: step, back: returned } = H.logic.idleStep(idleFor, seconds);
     idleFor = step;
-    if (back) H.pulse('back', { value: back });
+    if (returned) back(returned);
     H.set('idle', step || null);
   }
   // app.js tellClashes() and messages.js addClash(): both pages
@@ -481,16 +501,38 @@
     ...Object.fromEntries([0, 3, 5, 7, 25].map((v) => [`streak-${v}`, () => setStreak({ n: v })])),
     'result-ok': () => setStreak(hooks('dash').logic.streak(streak, true)),
     'result-fail': () => setStreak(hooks('dash').logic.streak(streak, false)),
-    milestone: () => hooks('dash').pulse('streak-milestone', { value: streak || 5 }, { ms: 3000 }),
-    break: () => hooks('dash').pulse('streak-break', { value: streak >= 3 ? streak : 7 }),
+    milestone: () => milestone(streak || 5),
+    break: () => streakBreak(streak >= 3 ? streak : 7),
     ...Object.fromEntries([0, 1, 2].map((v) => [`same-file-${v}`, () => both((H) => H.set('sameFile', v))])),
     clash: () => both((H) => H.pulse('clash', { value: 'orbit.js', path: '~/development/atalay-terminal/app/orbit.js', chats: ['night-city', 'afterlife'] })),
     ...Object.fromEntries([['idle-1m', 60], ['idle-5m', 300], ['idle-10m', 600], ['idle-input', 0]].map(([k, s]) => [k, () => setIdle(s)])),
-    ...Object.fromEntries(['1m', '5m', '10m'].map((v) => [`back-${v}`, () => hooks('dash').pulse('back', { value: v })])),
-    'theme-kept': () => hooks('dash').pulse('theme-kept', { value: current }, { ms: 1500 }),
+    ...Object.fromEntries(['1m', '5m', '10m'].map((v) => [`back-${v}`, () => back(v)])),
+    'theme-kept': () => themeKept(current),
     'status-waiting': () => hooks('dash').pulse('session-status', { value: 'waiting', sid: sessions[0]?.id || 's0' }),
     'status-idle': () => hooks('dash').pulse('session-status', { value: 'idle', sid: sessions[0]?.id || 's0' }),
   };
+
+  // ---------- the theme's sounds: each of its --sfx tokens, played from the page and the way the app plays it ----------
+  const THEME_ONLY = ['streak', 'streak-break', 'back', 'theme-kept'];
+  const soundsOf = (id) => Object.keys(byId.get(id).tokens).filter((k) => k.startsWith('--sfx-')).map((k) => k.slice('--sfx-'.length));
+  function playSound(name) {
+    // app.js ping(): straight through hooks.js; badges.js and the reveal: Sfx.sample; the rest: Sfx.play, the
+    // dashboard's moments on the dashboard, everything else on the notices.
+    if (name.startsWith('ping-')) return hooks('dash')?.sound(name);
+    if (name.startsWith('badge-')) return (name === 'badge-equip' ? frames.dash : frames.notices).win.Sfx.sample(name);
+    return (THEME_ONLY.includes(name) ? frames.dash : frames.notices).win.Sfx.play(name);
+  }
+  PG.sounds = () => soundsOf(current);
+  PG.playSound = playSound;
+  function soundRow() {
+    const names = soundsOf(current);
+    $('pg-sounds').innerHTML = names.map((n) => `<button type="button" data-sound="${esc(n)}">${esc(n)}</button>`).join('');
+    $('pg-sounds-note').textContent = !names.length
+      ? `${byId.get(current).name} has no sounds of its own: the app's play.`
+      : sound
+        ? 'Each plays as the app plays it: do not disturb still holds back what comes in.'
+        : 'Muted: tick "sounds" under Screen to hear them.';
+  }
 
   // ---------- the panel ----------
   const GROUPS = [
@@ -633,7 +675,20 @@
       fit();
     };
     $('pg-window').onchange = (e) => setWindow(e.target.value);
-    $('pg-sound').onchange = (e) => (sound = e.target.checked);
+    $('pg-sound').onchange = (e) => {
+      sound = e.target.checked;
+      soundRow();
+    };
+    $('pg-sounds').onclick = (e) => {
+      const b = e.target.closest('[data-sound]');
+      if (!b) return;
+      try {
+        playSound(b.dataset.sound);
+      } catch (err) {
+        PG.frameError('playground', `sound ${b.dataset.sound}: ${err.message}`);
+      }
+    };
+    soundRow();
     $('pg-front').onchange = (e) => {
       front = e.target.checked;
       N().focus(front);

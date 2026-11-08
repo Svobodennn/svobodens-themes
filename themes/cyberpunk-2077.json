@@ -9,5 +9,15 @@
   "accent": "#fcee0a",
   "ansi": ["#121221", "#fe1038", "#1ded83", "#fcee0a", "#4f88d5", "#a24df6", "#00f0ff", "#c0c8cf",
            "#55557a", "#ff6159", "#dfff5e", "#ffd741", "#64a1ff", "#c084ff", "#5ef6ff", "#ffffff"],
-  "ui": { "--theme-id": "svoboden-cyberpunk-2077", "--cursor-style": "bar", "--cursor-blink": "1" }
+  "ui": { "--theme-id": "svoboden-cyberpunk-2077", "--cursor-style": "bar", "--cursor-blink": "1",
+          "--sfx-message": "themes/svobodens-themes/sfx/cyberpunk-2077/message.wav",
+          "--sfx-request": "themes/svobodens-themes/sfx/cyberpunk-2077/request.wav",
+          "--sfx-friend": "themes/svobodens-themes/sfx/cyberpunk-2077/friend.wav",
+          "--sfx-wait": "themes/svobodens-themes/sfx/cyberpunk-2077/wait.wav",
+          "--sfx-clash": "themes/svobodens-themes/sfx/cyberpunk-2077/clash.wav",
+          "--sfx-levelup": "themes/svobodens-themes/sfx/cyberpunk-2077/levelup.wav",
+          "--sfx-rankup": "themes/svobodens-themes/sfx/cyberpunk-2077/rankup.wav",
+          "--sfx-xp": "themes/svobodens-themes/sfx/cyberpunk-2077/xp.wav",
+          "--sfx-streak": "themes/svobodens-themes/sfx/cyberpunk-2077/streak.wav",
+          "--sfx-badge-equip": "themes/svobodens-themes/sfx/cyberpunk-2077/badge-equip.wav" }
 }

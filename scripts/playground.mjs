@@ -7,16 +7,18 @@
 //     its page's own style sheets and the pack's, and the theme style the app writes (Themes.swift's script, read from
 //     the checkout), switched as the app switches it (window.__theme);
 //   - the notices and the overlay run their pages' own scripts, the app's bridge answered by the playground; the
-//     dashboard runs only its self-contained ones (hooks.js, xp.js, social.js, layout.js) and takes the rest as markup
-//     copied from the app's functions (playground/mocks.js);
+//     dashboard runs only its self-contained ones (hooks.js, xp.js, social.js, sfx.js, layout.js) and takes the rest as
+//     markup copied from the app's functions (playground/mocks.js);
+//   - sounds, the app's and the theme's (its --sfx tokens), play through each page's own sfx.js and hooks.js, only while
+//     the panel's sound box is ticked;
 //   - the pack's sheets and fonts are copied into web/themes/<pack>/ as `npm run preview` does; no tracked file of the
 //     checkout is touched.
 // Usage: npm run playground -- <atalay-terminal checkout>
-import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkPack } from './check.mjs'
-import { mergeThemes } from './preview.mjs'
+import { copyPack, mergeThemes } from './preview.mjs'
 import { themeCss, tokensOf, UI_FONTS } from './derive.mjs'
 
 export const FILE = 'svobodens-playground.html'
@@ -24,7 +26,7 @@ export const FILE = 'svobodens-playground.html'
 export const CSS_SLOT = '/*PG:CSS*/""'
 /** The frames: their page, and which of its scripts run (all, or the dashboard's self-contained few). */
 export const FRAMES = [
-  { name: 'dash', page: 'index.html', run: ['hooks.js', 'xp.js', 'social.js', 'layout.js'] },
+  { name: 'dash', page: 'index.html', run: ['hooks.js', 'xp.js', 'social.js', 'sfx.js', 'layout.js'] },
   { name: 'notices', page: 'messages.html', run: 'all', role: 'notices' },
   { name: 'overlay', page: 'overlay.html', run: 'all' },
 ]
@@ -191,17 +193,17 @@ export function build(target, root = fileURLToPath(new URL('..', import.meta.url
 
 function main(target) {
   const { web, page, sheets, pack, root, summary } = build(target)
-  // The pack's sheets and fonts where the frames link them, as `npm run preview` puts them (copied over, nothing removed).
+  // The pack's sheets, fonts and sounds where the frames find them, as `npm run preview` puts them (copied over, nothing
+  // removed).
   const folder = join(web, 'themes', pack)
   mkdirSync(folder, { recursive: true })
-  for (const sheet of sheets) cpSync(join(root, 'themes', sheet), join(folder, sheet))
-  cpSync(join(root, 'themes/fonts'), join(folder, 'fonts'), { recursive: true })
+  copyPack(root, folder, sheets)
   const file = join(web, FILE)
   writeFileSync(file, page)
   const quoted = `'${file.replace(/'/g, `'\\''`)}'`
   return [
     `${FILE}: ${summary.themes} themes, pseudo-element refresh from ${summary.refresh === 'app' ? "the app's __theme" : 'the playground'}, ` +
-      `${summary.hooks ? 'theme hooks from hooks.js' : 'no hooks.js in this checkout'}; ${sheets.length} sheets in web/themes/${pack}/`,
+      `${summary.hooks ? 'theme hooks from hooks.js' : 'no hooks.js in this checkout'}; ${sheets.length} sheets and the sounds in web/themes/${pack}/`,
     `open it in Safari:\n  open -a Safari ${quoted}`,
   ].join('\n')
 }
