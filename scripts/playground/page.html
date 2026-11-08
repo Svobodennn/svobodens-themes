@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Svoboden's Themes · playground</title>
+<!-- Made by svobodens-themes' scripts/playground.mjs; run it again rather than editing this file. -->
+<style>/*PG:STYLE*/</style>
+</head>
+<body>
+<aside id="pg-panel" aria-label="Playground controls">
+  <header>
+    <h1>Theme playground</h1>
+    <p id="pg-where"></p>
+  </header>
+  <section aria-labelledby="pg-h-theme">
+    <h2 id="pg-h-theme">Theme</h2>
+    <label class="pg-field">on screen <select id="pg-theme"></select></label>
+    <div class="pg-btns">
+      <button type="button" id="pg-prev" aria-label="Previous theme">‹ previous</button>
+      <button type="button" id="pg-next" aria-label="Next theme">next ›</button>
+      <button type="button" id="pg-replay">replay its intro</button>
+    </div>
+    <p class="pg-note">showing <b id="pg-current"></b>. Pointing at a card on the theme screen previews it, as in the app.</p>
+    <label class="pg-field">interface font <select id="pg-font"></select></label>
+    <p class="pg-note" id="pg-refresh"></p>
+  </section>
+  <section aria-labelledby="pg-h-screen">
+    <h2 id="pg-h-screen">Screen</h2>
+    <label class="pg-field">size <select id="pg-size"></select></label>
+    <p class="pg-note" id="pg-scale"></p>
+    <label class="pg-field">dashboard window
+      <select id="pg-window">
+        <option value="front">in front</option>
+        <option value="behind">behind another window</option>
+        <option value="hidden">hidden</option>
+      </select>
+    </label>
+    <label class="pg-field">boot screen lasts <input id="pg-boot-ms" type="number" min="200" max="10000" step="100" value="1600"> ms</label>
+    <label class="pg-check"><input type="checkbox" id="pg-front" checked> app in front (level-ups and badges wait for it)</label>
+    <label class="pg-check"><input type="checkbox" id="pg-sound"> the app's sounds</label>
+    <div class="pg-btns"><button type="button" id="pg-reload">reload the frames</button></div>
+    <p class="pg-note">Reduce motion is macOS's own setting (System Settings › Accessibility › Display), not this page's: it is <b id="pg-motion"></b>.</p>
+  </section>
+  <div id="pg-groups"></div>
+  <section aria-labelledby="pg-h-attrs">
+    <h2 id="pg-h-attrs">On each page's &lt;html&gt;</h2>
+    <h3>dashboard</h3><pre id="pg-attrs-dash"></pre>
+    <h3>notices</h3><pre id="pg-attrs-notices"></pre>
+    <h3>overlay</h3><pre id="pg-attrs-overlay"></pre>
+  </section>
+  <section aria-labelledby="pg-h-log">
+    <h2 id="pg-h-log">Log</h2>
+    <p id="pg-errors" class="pg-note">no errors in the frames</p>
+    <ol id="pg-log" aria-live="polite"></ol>
+  </section>
+</aside>
+<main id="pg-stage">
+  <div id="pg-fit">
+    <div id="pg-screen">
+      <iframe id="pg-dash" title="Dashboard (index.html)"></iframe>
+      <div id="pg-frost" aria-hidden="true"></div>
+      <iframe id="pg-notices" class="off" title="Notices (messages.html)"></iframe>
+      <iframe id="pg-overlay" class="off" title="Overlay (overlay.html)"></iframe>
+    </div>
+  </div>
+</main>
+<script type="application/json" id="pg-data">/*PG:DATA*/</script>
+<script>
+/*PG:SCRIPT*/
+</script>
+</body>
+</html>

@@ -31,6 +31,10 @@ what it put there and leaves any other change in that folder as it is:
 npm run preview -- <atalay-terminal checkout> --undo
 ```
 
+The states a dev build rarely shows (notices, a chat that needs you, the boot screen, a level-up, the theme hooks) are
+one page away: `npm run playground -- <atalay-terminal checkout>` writes `app/Resources/web/svobodens-playground.html`
+there (and the pack's sheets beside it) and prints the command that opens it in Safari.
+
 ## Making a theme
 
 A theme is one JSON file in `themes/`, in the app's own theme format: the terminal's background, text, cursor and
