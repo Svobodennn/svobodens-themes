@@ -5,6 +5,7 @@
 import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
 import { join, posix, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { bare, pieces, scan, splitList, unescape } from './css-scan.mjs'
 
 // The theme format's rules come from its schema, so the two can't disagree.
 const schema = JSON.parse(readFileSync(new URL('../schemas/theme.schema.json', import.meta.url), 'utf8'))
@@ -21,8 +22,6 @@ const SEMVER = /^\d+\.\d+\.\d+$/
 const PATH = /^\.\/themes\/[^/]+\.json$/
 const CSS_PATH = /^\.\/themes\/[^/]+\.css$/
 const FONT = /\.(ttf|otf|woff2?)$/i
-// url("…"), url('…') or url(…); a quoted data URI may hold ")" of its own.
-const URL_REF = /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"\s]*))\s*\)/g
 const COLORS = ['bg', 'fg', 'cursor', 'selection', 'accent']
 const REQUIRED = schema.required
 const KNOWN = new Set(Object.keys(schema.properties))
@@ -112,104 +111,143 @@ export function checkManifest(pkg) {
   return errors
 }
 
-/** A style sheet's top level: each block's prelude and body, and statements outside blocks. Comments go; strings and
- *  unquoted url(…) are skipped whole, so the braces and "/*" a data URI may hold count for nothing. */
-export function sheetBlocks(text) {
-  const blocks = []
-  let depth = 0, prelude = '', body = '', i = 0
-  const skipString = () => {
-    const quote = text[i]
-    let j = i + 1
-    while (j < text.length && text[j] !== quote) j += text[j] === '\\' ? 2 : 1
-    const s = text.slice(i, j + 1)
-    i = j + 1
-    return s
+/** A style sheet's top level: each block's prelude and its body as written, and statements, with a null body. */
+export const sheetBlocks = (text) => scan(text).items
+
+const GATE = /^@container (svb-root )?style\( ?--theme-id ?: ?([a-z0-9-]+) ?\)$/i
+// Each defines a name or an order for the whole page, which no condition around it can keep to one theme.
+const GLOBAL = /^@(?:property|counter-style|layer|font-feature-values|font-palette-values|import)(?![\w-])/i
+const KEYFRAMES = /^@(?:-webkit-)?keyframes(?![\w-]) ?(.*)$/i
+const FONT_FACE = /^@font-face$/i
+const GROUP = /^@(?:media|supports|container|starting-style)(?![\w-])/i
+const PSEUDO = /::|:(?:before|after|first-letter|first-line)(?![\w-])/i
+const SVB_FAMILY = /^(["'])Svb [^"'\\]+\1$/
+const short = (s) => s.slice(0, 60)
+const outside = (prelude) => `"${short(prelude)}" is outside the theme's gate`
+const hasPseudo = (selector) => PSEUDO.test(bare(selector))
+const holdsRules = (body) => scan(body).items.some((item) => item.body !== null)
+const plain = (body) => pieces(body).list.filter((p) => p.type !== 'comment').map((p) => p.text).join('').replace(/\s+/g, '').replace(/;$/, '')
+
+/** A body's declarations, each name with its escapes resolved (so `font-famil\79` is font-family). */
+const declarations = (body) =>
+  scan(body).items.filter((item) => item.body === null && item.prelude.includes(':')).map(({ prelude }) => ({
+    name: unescape(prelude.slice(0, prelude.indexOf(':'))).trim().toLowerCase(),
+    value: prelude.slice(prelude.indexOf(':') + 1).trim(),
+  }))
+
+/** Whether a character from `chars` sits outside every () and [] of a bare selector. */
+function atTopLevel(text, chars) {
+  let depth = 0
+  for (const c of text) {
+    if (c === '(' || c === '[') depth++
+    else if (c === ')' || c === ']') depth--
+    else if (depth === 0 && chars.includes(c)) return true
   }
-  while (i < text.length) {
-    let piece
-    if (text.startsWith('/*', i)) {
-      const end = text.indexOf('*/', i + 2)
-      i = end === -1 ? text.length : end + 2
-      continue
-    } else if (text[i] === '"' || text[i] === "'") {
-      piece = skipString()
-    } else if (/^url\(\s*[^\s'"]/i.test(text.slice(i, i + 6))) {
-      const end = text.indexOf(')', i)
-      piece = text.slice(i, end === -1 ? text.length : end + 1)
-      i += piece.length
-    } else {
-      piece = text[i++]
-      if (piece === '{' && depth++ === 0) continue
-      if (piece === '}' && --depth === 0) {
-        blocks.push({ prelude: prelude.trim().replace(/\s+/g, ' '), body: body.trim() })
-        prelude = body = ''
-        continue
-      }
-    }
-    if (depth === 0) prelude += piece
-    else body += piece
-  }
-  if (prelude.trim()) blocks.push({ prelude: prelude.trim().replace(/\s+/g, ' '), body: null })
-  return blocks
+  return false
 }
 
-const squash = (s) => (s ?? '').replace(/\s+/g, '').replace(/;$/, '')
-
-/** The rules in a block (through any @media/@supports inside it) whose selectors reach ::before or ::after. */
-function pseudoRules(body) {
-  const found = []
-  for (const { prelude, body: inner } of sheetBlocks(body)) {
-    if (inner === null || /^@keyframes\b/i.test(prelude)) continue
-    if (prelude.startsWith('@')) found.push(...pseudoRules(inner))
-    else if (/::?(before|after)\b/i.test(prelude)) found.push(prelude)
-  }
-  return found
+/** Whether every selector is the theme's own card on the theme screen or something in it, which shows while another
+ *  theme is chosen: it starts with the card and only goes down from there (no sibling, no :has()). */
+function ownCard(prelude, id) {
+  const card = `.th-card[data-id="${id}"]`
+  return splitList(prelude).every((selector) => {
+    // <html> is the root, so a class on it only narrows the selector (the window being behind another one, say).
+    const s = selector.replace(/^html(?:\.[\w-]+)*\s+/, '')
+    if (!s.startsWith(card)) return false
+    // The card's closing "] ends the id, so a longer id that starts with this one is another theme's card.
+    const rest = bare(s.slice(card.length))
+    return !/:has\(/i.test(rest) && !atTopLevel(rest, '~+|')
+  })
 }
 
-/** What is outside the theme's gate in its sheet: every top-level block must apply only while the theme is chosen, or be
- *  one of the few that can't affect another theme. The gate is @container [svb-root] style(--theme-id: <id>); svb-root
- *  (named on <html>) is what pseudo-elements need, since WebKit evaluates an unnamed query on a pseudo-element against
- *  its element's old style and leaves it on screen after the theme changes. */
-export function checkSheet(text, id) {
-  const errors = []
-  for (const { prelude, body } of sheetBlocks(text)) {
-    const gate = /^@container (svb-root )?style\(--theme-id: ?([a-z0-9-]+)\)$/i.exec(prelude)
-    if (gate) {
-      if (gate[2] !== id) errors.push(`gated on "${gate[2]}", not on this theme`)
-      if (!gate[1]) {
-        for (const selector of pseudoRules(body ?? '')) errors.push(`"${selector.slice(0, 60)}" needs the svb-root gate (a pseudo-element)`)
+/** Keyframes and font faces are global wherever they sit, so their names must stay out of the app's and other packs'. */
+function checkAtRule(prelude, body, report, group) {
+  const keyframes = KEYFRAMES.exec(prelude)
+  if (GLOBAL.test(prelude)) report.errors.push(`"${short(prelude)}" is not allowed: it reaches every theme, gated or not`)
+  else if (keyframes) {
+    const name = /^(["']).*\1$/.test(keyframes[1]) ? keyframes[1].slice(1, -1) : unescape(keyframes[1])
+    if (/^svb-[\w-]+$/.test(name)) report.keyframes.push(name)
+    else report.errors.push(`"${short(prelude)}" is not named svb-…, and keyframes reach every theme`)
+  } else if (FONT_FACE.test(prelude)) {
+    const families = declarations(body ?? '').filter((d) => d.name === 'font-family')
+    if (!families.length || !families.every((d) => SVB_FAMILY.test(d.value))) {
+      report.errors.push('"@font-face" needs font-family: "Svb …" (a font face reaches every theme)')
+    }
+  } else if (group && GROUP.test(prelude) && body !== null) group()
+  else report.errors.push(group ? `"${short(prelude)}" is not allowed in a gate` : outside(prelude))
+}
+
+/** The rules a gate holds, at any depth. Under the unnamed gate WebKit checks a pseudo-element against its element's
+ *  old style and leaves it on screen after the theme changes; the svb-root gate ignores the orbit map's reset, so it
+ *  holds pseudo-elements only. */
+function checkGated(text, named, report, inPseudo = false) {
+  for (const { prelude, body } of scan(text).items) {
+    if (prelude.startsWith('@')) {
+      checkAtRule(prelude, body, report, () => {
+        if (named && /^@container(?![\w-])/i.test(prelude) && !/^@container svb-root /i.test(prelude)) {
+          report.errors.push(`"${short(prelude)}" inside the svb-root gate needs the svb-root name too`)
+        }
+        checkGated(body, named, report, inPseudo)
+      })
+    } else if (body !== null) {
+      const pseudo = inPseudo || splitList(prelude).every(hasPseudo)
+      if (!named && hasPseudo(prelude)) report.errors.push(`"${short(prelude)}" needs the svb-root gate (a pseudo-element)`)
+      if (named && !pseudo && declarations(body).length) {
+        report.errors.push(`"${short(prelude)}" is an element rule: the svb-root gate reaches into the orbit map, so it goes in the unnamed gate`)
       }
-      continue
+      checkGated(body, named, report, pseudo)
     }
-    if (body === null) {
-      errors.push(`"${prelude}" is outside the theme's gate`)
-      continue
-    }
+  }
+}
+
+/** A sheet's (or a top-level @media's) items: each must be gated on the theme, or one of the few that can't touch another
+ *  theme. */
+function checkTop(text, id, report, atStart) {
+  const { items, problems } = scan(text)
+  report.errors.push(...problems)
+  items.forEach(({ prelude, body }, i) => {
+    const gate = GATE.exec(prelude)
+    if (gate && body !== null) {
+      if (gate[2] !== id) report.errors.push(`gated on "${gate[2]}", not on this theme`)
+      checkGated(body, Boolean(gate[1]), report)
+    } else if (GLOBAL.test(prelude) || KEYFRAMES.test(prelude) || FONT_FACE.test(prelude)) checkAtRule(prelude, body, report)
+    else if (atStart && i === 0 && body === null && /^@charset "[^"]*"$/.test(prelude)) return
+    else if (body === null) report.errors.push(outside(prelude))
     // A condition around gated rules keeps them gated: what's inside answers to the same rules.
-    if (/^@(media|supports)\b/i.test(prelude)) {
-      errors.push(...checkSheet(body, id))
-      continue
-    }
-    const allowed =
-      prelude === '@font-face'
-      || /^@keyframes svb-[a-z0-9-]+$/i.test(prelude)
-      || (prelude === '#mapwrap' && squash(body) === '--theme-id:none')
-      || (prelude === 'html' && squash(body) === 'container-name:svb-root')
-      // the theme's own card on the theme screen, shown while another theme is chosen
-      || (!prelude.startsWith('@') && prelude.split(',').every((selector) => selector.includes(id)))
-    if (!allowed) errors.push(`"${prelude.slice(0, 60)}" is outside the theme's gate`)
-  }
-  return errors
+    else if (/^@(?:media|supports)(?![\w-])/i.test(prelude)) checkTop(body, id, report, false)
+    else if ((prelude === '#mapwrap' && plain(body) === '--theme-id:none') || (prelude === 'html' && plain(body) === 'container-name:svb-root')) return
+    else if (!prelude.startsWith('@') && ownCard(prelude, id)) {
+      if (holdsRules(body)) report.errors.push(`"${short(prelude)}" holds nested rules (a theme's own card takes plain declarations only)`)
+    } else report.errors.push(outside(prelude))
+  })
 }
 
-/** The files a style sheet points at with url(), as written (data: URIs and #fragments left out, comments ignored). */
+/** What a theme's sheet sets outside its gate, and the keyframes it names (global, so checked across the pack). */
+function inspectSheet(text, id) {
+  const report = { errors: [], keyframes: [] }
+  checkTop(text, id, report, true)
+  return report
+}
+
+/** What is outside the theme's gate in its sheet: every rule must apply only while the theme is chosen, or be one of the
+ *  few that can't affect another theme. The gate is @container [svb-root] style(--theme-id: <id>); svb-root (named on
+ *  <html>) is what pseudo-elements need. */
+export const checkSheet = (text, id) => inspectSheet(text, id).errors
+
+/** The files a style sheet points at with url(), without ?query or #fragment (data: URIs and #fragments left out, and a
+ *  url() in a comment or a string is none). */
 export function cssRefs(text) {
-  const live = sheetBlocks(text).map((b) => `${b.prelude}{${b.body ?? ''}}`).join('')
-  return [...live.matchAll(URL_REF)].map((m) => m[1] ?? m[2] ?? m[3]).filter((ref) => ref && !ref.startsWith('data:') && !ref.startsWith('#'))
+  const list = pieces(text).list.filter((p) => p.type !== 'comment' && !(p.type === 'char' && /\s/.test(p.text)))
+  const refs = list.map((p, i) => {
+    if (p.type === 'url') return p.text.slice(p.text.indexOf('(') + 1).replace(/\)$/, '').trim()
+    const quoted = p.type === 'ident' && p.name.toLowerCase() === 'url' && list[i + 1]?.text === '(' && list[i + 2]?.type === 'string'
+    return quoted ? list[i + 2].text.slice(1, -1) : ''
+  })
+  return refs.filter((ref) => ref && !ref.startsWith('data:')).map((ref) => ref.replace(/[?#][^]*$/, '')).filter(Boolean)
 }
 
 /** What is wrong with a theme's style sheet in the pack: its gate, and what it points at, which must sit beside it. */
-function checkCss(root, entry, theme, used) {
+function checkCss(root, entry, theme, used, keyframes) {
   const file = entry.css.slice(2)
   let text
   try {
@@ -217,7 +255,14 @@ function checkCss(root, entry, theme, used) {
   } catch (error) {
     return [`${file}: ${error.code === 'ENOENT' ? 'listed in package.json but missing' : error.message}`]
   }
-  const errors = checkSheet(text, entry.id).map((e) => `${file}: ${e}`)
+  const sheet = inspectSheet(text, entry.id)
+  const errors = sheet.errors.map((e) => `${file}: ${e}`)
+  // Keyframes are global: two sheets naming the same ones would take each other's.
+  for (const name of new Set(sheet.keyframes)) {
+    const other = keyframes.get(name)
+    if (other && other !== file) errors.push(`${file}: "@keyframes ${name}" is also in ${other}`)
+    else keyframes.set(name, file)
+  }
   if (theme?.ui?.['--theme-id'] !== entry.id) errors.push(`${file}: never applies, ${entry.path.slice(2)} has no ui "--theme-id": "${entry.id}"`)
   for (const ref of cssRefs(text)) {
     // The app loads its pages from file://, so only a path relative to the sheet reaches the pack's files.
@@ -244,6 +289,7 @@ export function checkPack(root) {
   const list = Array.isArray(pkg?.contributes?.themes) ? pkg.contributes.themes : []
   const listed = new Set()
   const used = new Set()
+  const keyframes = new Map()
   for (const entry of list) {
     if (!isObject(entry) || !(typeof entry.path === 'string' && PATH.test(entry.path))) continue
     const file = entry.path.slice(2)
@@ -256,13 +302,13 @@ export function checkPack(root) {
     } catch (error) {
       errors.push(`${file}: ${error.code === 'ENOENT' ? 'listed in package.json but missing' : error.message}`)
       // Its sheet still counts the fonts it loads; its own errors wait until the theme file reads.
-      if (hasCss) checkCss(root, entry, undefined, used)
+      if (hasCss) checkCss(root, entry, undefined, used, keyframes)
       continue
     }
     errors.push(...checkTheme(theme).map((e) => `${file}: ${e}`))
     if (theme?.id !== entry.id) errors.push(`${file}: id ${show(theme?.id)} is not package.json's ${show(entry.id)}`)
     if (theme?.name !== entry.label) errors.push(`${file}: name ${show(theme?.name)} is not package.json's label ${show(entry.label)}`)
-    if (hasCss) errors.push(...checkCss(root, entry, theme, used))
+    if (hasCss) errors.push(...checkCss(root, entry, theme, used, keyframes))
     // A theme naming another one's id would wear that theme's sheet.
     const named = isObject(theme?.ui) ? theme.ui['--theme-id'] : undefined
     if (named !== undefined && named !== entry.id) errors.push(`${file}: ui "--theme-id" ${show(named)} is not its own id ${show(entry.id)}`)

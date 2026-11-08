@@ -24,8 +24,12 @@ To try them now in a source checkout of the app:
 npm run preview -- <atalay-terminal checkout>   # then start app/dev.sh there
 ```
 
-It edits that checkout's `app/Resources/web` (the themes file and three pages) and adds a folder there;
-`git checkout -- app/Resources/web` and deleting `app/Resources/web/themes/svobodens-themes` undo it.
+It edits that checkout's `app/Resources/web` (the themes file and three pages) and adds a folder there. This takes out
+what it put there and leaves any other change in that folder as it is:
+
+```sh
+npm run preview -- <atalay-terminal checkout> --undo
+```
 
 ## Making a theme
 
@@ -36,12 +40,29 @@ you type.
 
 A theme can also have a style sheet, as the app's own MUR47 theme does (the app links MUR47's itself; `css` in a
 `package.json` entry is this pack's field, read by its checker and preview script). The theme sets its id in `ui`
-(`"--theme-id"`), and every rule waits for it:
+(`"--theme-id"`), and its rules wait for it behind one of two gates:
 
-- element rules inside `@container style(--theme-id: <id>)`;
-- `::before` / `::after` rules inside `@container svb-root style(--theme-id: <id>)`, with `html { container-name:
-  svb-root }` in the sheet. WebKit checks an unnamed query on a pseudo-element against its element's old style, so
-  without the name a theme's decorations stay on screen after another theme is chosen.
+- element rules inside `@container style(--theme-id: <id>)`. The sheet's `#mapwrap { --theme-id: none }` closes this
+  gate inside the orbit map;
+- pseudo-element rules (`::before`, `::after`, `::marker`, any other `::…` and the one-colon `:before` kind), and only
+  those, inside `@container svb-root style(--theme-id: <id>)`, with `html { container-name: svb-root }` in the sheet.
+  WebKit checks an unnamed query on a pseudo-element against its element's old style, so without the name a theme's
+  decorations stay on screen after another theme is chosen. The named gate asks `<html>` and skips the `#mapwrap`
+  reset, so whatever it holds reaches into the orbit map too: element rules stay out of it, and its pseudo-element
+  rules must not match anything inside `#mapwrap` (the checker can't see that, so look).
+
+Outside the gates a sheet holds only these:
+
+- `@font-face` with `font-family: "Svb …"`, and `@keyframes` named `svb-…`, no name in two sheets. Both act on the whole
+  app wherever they sit, gated or not, so their names keep clear of the app's;
+- the theme's own card on the theme screen, shown while another theme is chosen: rules whose every selector starts with
+  `.th-card[data-id="<id>"]` (or `html`, perhaps with classes, then that) and only goes down from it, with no `~`, `+`,
+  `:has()` or nested rules;
+- `html { container-name: svb-root }`, `#mapwrap { --theme-id: none }`, `@charset` at the top, and `@media` or
+  `@supports` around any of these.
+
+`@property`, `@counter-style`, `@layer`, `@font-feature-values`, `@font-palette-values` and `@import` aren't allowed
+anywhere, as each acts on every theme even inside a gate: an `@property --theme-id` there blanks every theme's sheet.
 
 List the files under `contributes.themes` in `package.json`, then check the pack:
 

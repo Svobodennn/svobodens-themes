@@ -150,7 +150,7 @@ test('a sheet keeps every rule behind its own theme gate', () => {
   assert.deepEqual(checkSheet('@container style(--theme-id: svoboden-other){a{b:c}}', id), ['gated on "svoboden-other", not on this theme'])
   // Outside any gate a rule restyles every theme.
   assert.deepEqual(checkSheet('.tag{x:y} *{cursor:none!important}', id), ['".tag" is outside the theme\'s gate', '"*" is outside the theme\'s gate'])
-  assert.deepEqual(checkSheet('@keyframes pulse{to{opacity:0}}', id), ['"@keyframes pulse" is outside the theme\'s gate'])
+  assert.deepEqual(checkSheet('@keyframes pulse{to{opacity:0}}', id), ['"@keyframes pulse" is not named svb-…, and keyframes reach every theme'])
   // WebKit leaves a pseudo-element under an unnamed gate on screen after the theme changes.
   assert.deepEqual(checkSheet(`@container style(--theme-id: ${id}){.tag{x:y}@media (prefers-reduced-motion: no-preference){#app::before{x:y}}}`, id),
     ['"#app::before" needs the svb-root gate (a pseudo-element)'])
@@ -160,7 +160,103 @@ test('a sheet keeps every rule behind its own theme gate', () => {
   assert.deepEqual(checkSheet(`@media (prefers-reduced-motion: no-preference){@container style(--theme-id: ${id}){a{b:c}}}`, id), [])
   assert.deepEqual(checkSheet('@media (min-width:1px){a{b:c}}', id), ['"a" is outside the theme\'s gate'])
   assert.deepEqual(checkSheet(`.th-card[data-id="${id}"], .tag{x:y}`, id), [`".th-card[data-id="${id}"], .tag" is outside the theme's gate`])
-  assert.deepEqual(checkSheet('@import url(x.css);', id), ['"@import url(x.css);" is outside the theme\'s gate'])
+  assert.deepEqual(checkSheet('@import url(x.css);', id), ['"@import url(x.css)" is not allowed: it reaches every theme, gated or not'])
+})
+
+const ID = 'svoboden-test'
+const outside = (p) => `"${p}" is outside the theme's gate`
+
+test('W1: strings, escapes and url() read as the browser reads them, so no rule hides inside a gate', () => {
+  // A string ends at an unescaped newline (CR LF and CR too), so the braces after it close the gate.
+  for (const nl of ['\n', '\r\n', '\r']) {
+    assert.deepEqual(checkSheet(`@container style(--theme-id: ${ID}){a{content:"x${nl}}}${nl}.tag{color:red} /* " */`, ID), [outside('.tag')], JSON.stringify(nl))
+  }
+  // An unquoted url() keeps a "{" whatever the spaces before it, an escaped url( is still one, and an escaped "{" is part
+  // of a name.
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${ID}){a{b:url(   x{y.png)}}.tag{color:red}}`, ID), ['a "}" closes nothing', outside('.tag')])
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${ID}){a{b:\\75 rl( x{y.png)}}.tag{color:red}}`, ID), ['a "}" closes nothing', outside('.tag')])
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${ID}){.a\\{color:red}.tag{color:red}}`, ID), ['a "}" closes nothing', outside('.tag')])
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${ID}){a{b:c}`, ID), ['a "{" is never closed'])
+  // A bracket closes only its own kind, as in WebKit: the "}" inside fn() closes nothing.
+  assert.deepEqual(checkSheet(`@container style(--theme-id: ${ID}){a{b:fn(})}}`, ID), [])
+})
+
+test("W2: a theme's own card rules start with its card and stay inside it", () => {
+  const card = `.th-card[data-id="${ID}"]`
+  for (const selector of [
+    `body:not([data-id="${ID}"]) *`,
+    `body:has(${card}) .tag`,
+    `${card} ~ .th-card`,
+    `${card}+.th-card`,
+    `${card}:has(~ .th-card) .th-shot`,
+    `[data-id^="${ID}"], :not(#${ID}) *`,
+    `.th-card[data-id="${ID}-two"] .th-shot`,
+  ]) {
+    assert.deepEqual(checkSheet(`${selector}{opacity:0}`, ID), [outside(selector)], selector)
+  }
+  assert.deepEqual(checkSheet(`${card}{color:red;& ~ *{opacity:0}}`, ID),
+    [`"${card}" holds nested rules (a theme's own card takes plain declarations only)`])
+  // A comma inside :is() doesn't split the selector, and the root's state only narrows it.
+  assert.deepEqual(checkSheet(`${card}:is(:hover, .hot) .th-shot, ${card} > .th-pal i:nth-child(2n+1){opacity:.5}`, ID), [])
+  assert.deepEqual(checkSheet(`html.behind ${card} .th-shot::before{animation:none}`, ID), [])
+})
+
+test('W3: any pseudo-element under the unnamed gate, nested or legacy, needs svb-root', () => {
+  const unnamed = (rules) => checkSheet(`@container style(--theme-id: ${ID}){${rules}}`, ID)
+  const needs = (s) => `"${s}" needs the svb-root gate (a pseudo-element)`
+  assert.deepEqual(unnamed('.n1{color:red;&::after{x:y}}'), [needs('&::after')])
+  assert.deepEqual(unnamed('p::first-letter{x:y}li::marker{x:y}p:first-line{x:y}'), [needs('p::first-letter'), needs('li::marker'), needs('p:first-line')])
+  // An escaped colon is part of a class name; an escaped letter still spells :after.
+  assert.deepEqual(unnamed('.x\\:after{x:y}.y:\\61 fter{x:y}'), [needs('.y:\\61 fter')])
+  const inner = `@container style(--theme-id: ${ID})`
+  assert.deepEqual(checkSheet(`@container svb-root style(--theme-id: ${ID}){${inner}{#app::after{x:y}}}`, ID),
+    [`"${inner}" inside the svb-root gate needs the svb-root name too`])
+})
+
+test('W4: keyframes, font faces and global at-rules reach every theme, gated or not', () => {
+  const gated = (rules) => checkSheet(`@container style(--theme-id: ${ID}){${rules}}`, ID)
+  assert.deepEqual(gated('@keyframes alarm{to{opacity:0}}'), ['"@keyframes alarm" is not named svb-…, and keyframes reach every theme'])
+  assert.deepEqual(gated('@keyframes svb-alarm{to{opacity:0}}'), [])
+  // Inside a gate only conditions and the rules above: any other at-rule may name something for the whole page.
+  assert.deepEqual(gated('@position-try --svb{top:0}'), ['"@position-try --svb" is not allowed in a gate'])
+  const faceError = '"@font-face" needs font-family: "Svb …" (a font face reaches every theme)'
+  assert.deepEqual(checkSheet('@font-face{font-family:"Menlo";src:url(fonts/x.ttf)}', ID), [faceError])
+  assert.deepEqual(checkSheet('@font-face{font-family:"Svb X";font-famil\\79:"Menlo";src:url(fonts/x.ttf)}', ID), [faceError])
+  assert.deepEqual(gated('@font-face{src:url(fonts/x.ttf)}'), [faceError])
+  for (const rule of ['@property --theme-id{syntax:"*";inherits:true}', '@counter-style svb{system:cyclic}', '@layer svb{a{b:c}}',
+    '@layer svb;', '@font-feature-values Svb X{@styleset{a:1}}', '@import url(x.css);']) {
+    const name = rule.match(/^@[\w-]+/)[0]
+    for (const [where, errors] of [['top', checkSheet(rule, ID)], ['gated', gated(rule)]]) {
+      assert.equal(errors.length, 1, `${rule} ${where}: ${errors}`)
+      assert.match(errors[0], new RegExp(`^"${name}.*" is not allowed: it reaches every theme, gated or not$`), `${rule} ${where}`)
+    }
+  }
+})
+
+test('W4: two sheets of the pack never define the same keyframes', () => {
+  const two = manifest([entry({ css: './themes/test.css' }), entry({ id: 'svoboden-b', label: 'B', path: './themes/b.json', css: './themes/b.css' })])
+  const a = theme({ ui: { '--theme-id': ID } })
+  const b = theme({ id: 'svoboden-b', name: 'B', ui: { '--theme-id': 'svoboden-b' } })
+  const sheet = (id) => `@container style(--theme-id: ${id}){@keyframes svb-pulse{to{opacity:0}}}`
+  assert.deepEqual(checkPack(pack(two, { 'test.json': a, 'b.json': b, 'test.css': sheet(ID), 'b.css': sheet('svoboden-b') })).errors,
+    ['themes/b.css: "@keyframes svb-pulse" is also in themes/test.css'])
+})
+
+test('W5: the svb-root gate holds pseudo-elements only, since it reaches into the orbit map', () => {
+  const element = (s) => `"${s}" is an element rule: the svb-root gate reaches into the orbit map, so it goes in the unnamed gate`
+  assert.deepEqual(checkSheet(`@container svb-root style(--theme-id: ${ID}){#space canvas{opacity:.25}#app::after,#app{x:y}#app::before{x:y}}`, ID),
+    [element('#space canvas'), element('#app::after,#app')])
+  // "::" in a string is no pseudo-element; a rule that only holds a nested pseudo-element sets nothing itself.
+  assert.deepEqual(checkSheet(`@container svb-root style(--theme-id: ${ID}){#space canvas[data-x="::after"]{opacity:.25}#app{&::after{x:y}}}`, ID),
+    [element('#space canvas[data-x="::after"]')])
+})
+
+test('S1: a charset, spaces in style() and a font url with ?#iefix are fine', () => {
+  assert.deepEqual(checkSheet(`@charset "utf-8";@container style( --theme-id : ${ID} ){a{b:c}}@container svb-root style( --theme-id:${ID}){a::after{b:c}}`, ID), [])
+  assert.deepEqual(cssRefs('@font-face{font-family:"Svb X";src:url(fonts/x.ttf?#iefix) format("embedded-opentype"),url( "fonts/y.woff?v=2" )}'),
+    ['fonts/x.ttf', 'fonts/y.woff'])
+  // A url() written inside a string is no reference.
+  assert.deepEqual(cssRefs('a::after{content:"url(fonts/none.ttf)"}'), [])
 })
 
 test('the pack: gating, borrowed ids, refs outside the sheet, and no cascade from a broken theme file', () => {
@@ -169,7 +265,7 @@ test('the pack: gating, borrowed ids, refs outside the sheet, and no cascade fro
   const named = theme({ ui: { '--theme-id': 'svoboden-test' } })
   assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': 'a{b:c}' })).errors, ['themes/test.css: "a" is outside the theme\'s gate'])
   // The app loads pages from file://, where "/fonts/x.ttf" is the disk's root.
-  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': '@font-face{src:url(/fonts/x.ttf)}', 'fonts/x.ttf': '' })).errors,
+  assert.deepEqual(checkPack(pack(withCss, { 'test.json': named, 'test.css': '@font-face{font-family:"Svb X";src:url(/fonts/x.ttf)}', 'fonts/x.ttf': '' })).errors,
     ['themes/test.css: url("/fonts/x.ttf") is not relative to the sheet', 'themes/fonts/x.ttf: no theme\'s CSS uses it'])
   // A theme without a sheet that names another theme's id would wear that theme's sheet.
   const two = manifest([entry({ css: './themes/test.css' }), entry({ id: 'svoboden-b', label: 'B', path: './themes/b.json' })])
