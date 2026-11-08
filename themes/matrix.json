@@ -14,7 +14,6 @@
           "--sfx-message": "themes/svobodens-themes/sfx/matrix/message.wav",
           "--sfx-request": "themes/svobodens-themes/sfx/matrix/request.wav",
           "--sfx-clash": "themes/svobodens-themes/sfx/matrix/clash.wav",
-          "--sfx-levelup": "themes/svobodens-themes/sfx/matrix/levelup.wav",
           "--sfx-streak": "themes/svobodens-themes/sfx/matrix/streak.wav",
           "--sfx-back": "themes/svobodens-themes/sfx/matrix/back.wav",
           "--sfx-badge-equip": "themes/svobodens-themes/sfx/matrix/badge-equip.wav" },

@@ -14,8 +14,6 @@
           "--sfx-message": "themes/svobodens-themes/sfx/modern-warfare-2/message.wav",
           "--sfx-request": "themes/svobodens-themes/sfx/modern-warfare-2/request.wav",
           "--sfx-clash": "themes/svobodens-themes/sfx/modern-warfare-2/clash.wav",
-          "--sfx-levelup": "themes/svobodens-themes/sfx/modern-warfare-2/levelup.wav",
-          "--sfx-rankup": "themes/svobodens-themes/sfx/modern-warfare-2/rankup.wav",
           "--sfx-streak": "themes/svobodens-themes/sfx/modern-warfare-2/streak.wav",
           "--sfx-streak-break": "themes/svobodens-themes/sfx/modern-warfare-2/streak-break.wav",
           "--sfx-theme-kept": "themes/svobodens-themes/sfx/modern-warfare-2/theme-kept.wav",

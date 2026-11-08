@@ -61,23 +61,6 @@ export default {
       return reverb(out, { room: 0.5, wet: 0.2, tail: 0.25 })
     },
   },
-  levelup: {
-    about: 'digital rain: a glassy E minor pentatonic run falling three octaves, landing on a soft Em(add9) shimmer',
-    make(rng) {
-      const out = silence(2.0)
-      const RUN = [2637, 2349.3, 1975.5, 1760, 1568, 1318.5, 1174.7, 987.8, 880, 784, 659.3, 587.3, 493.9]
-      RUN.forEach((f, i) => {
-        const cents = (rng() - 0.5) * 16
-        const at = i * 0.055 + (rng() - 0.5) * 0.012
-        add(out, bell(0.35, f * 2 ** (cents / 1200), { ratio: 2, index: 1.6, tau: 0.08 }), Math.max(0, at), 0.18 + 0.12 * rng())
-      })
-      for (const f of [329.63, 493.88, 739.99, 783.99]) {
-        add(out, bell(1.2, f, { ratio: 2, index: 0.8, tau: 0.45, attack: 0.02 }), 0.74, 0.11)
-        add(out, times(osc(1.2, f * 2.003), shape(1.2, [[0, 0], [0.25, 1], [1.2, 0]], 2)), 0.74, 0.025)
-      }
-      return reverb(crush(out, 12), { room: 0.7, wet: 0.3, tail: 0.3 })
-    },
-  },
   streak: {
     about: 'a soft rising data shimmer: tiny high sine grains climbing over a swelling band of noise',
     make(rng) {

@@ -62,14 +62,6 @@ export default {
       return drive(band(out, 300, 3500), 2.2)
     },
   },
-  levelup: {
-    about: 'a punchy rank-up stinger: a short pickup stab, then a kick, a crack and a bright D major brass chord',
-    make: (rng) => stinger(rng, { pickups: [[220, 277.18, 329.63]], chord: [146.83, 220, 293.66, 369.99], hold: 1.1 }),
-  },
-  rankup: {
-    about: 'the stinger bigger: two pickup stabs climbing, a wider D major chord held longer, a bell on top',
-    make: (rng) => stinger(rng, { pickups: [[196, 246.94, 293.66], [220, 277.18, 329.63]], chord: [73.42, 146.83, 220, 293.66, 369.99, 440], hold: 1.6, top: 1174.66 }),
-  },
   streak: {
     about: 'a hitmarker-style tick, then a two-note reward chime (G6, D7)',
     make(rng) {
