@@ -1,8 +1,10 @@
 /* Modern Warfare 2 (Svoboden's Themes): what its colours alone can't give. Every rule waits for this theme's
    --theme-id (its tokens set it on :root), so the other themes look as they did; the orbit map is left as it is.
    Two gates: rules for elements wait in the unnamed style query, which honours the map's reset below; rules for
-   ::before/::after wait in the one named on <html>, because WebKit re-reads a pseudo-element's own unnamed query only
-   late, and a live theme switch would leave them on screen. All art is drawn here: generic military motifs, no logos, no traced artwork.
+   ::before/::after wait in the one named on <html>: under an unnamed query WebKit does not re-read a pseudo-element's
+   style when the theme changes live, so they stayed on screen (the app now refreshes them; this works on older ones too).
+   The app's theme hooks (data-* on <html>) only add moments; without them nothing here changes.
+   All art is drawn here: generic military motifs, no logos, no traced artwork.
    Fonts: Barlow Condensed and Michroma (SIL Open Font License, fonts/OFL-*.txt). */
 
 @font-face { font-family: "Svb Barlow Condensed"; src: url("fonts/BarlowCondensed-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
@@ -42,6 +44,8 @@ html { container-name: svb-root; }
 @keyframes svb-mw2-incoming { 50% { opacity: 0.35; } }
 @keyframes svb-mw2-load { to { transform: translateX(252px); } }
 @keyframes svb-mw2-card-in { 0% { opacity: 0; transform: translateX(56px); } 55% { opacity: 1; transform: translateX(-5px); } 100% { opacity: 1; transform: none; } }
+@keyframes svb-mw2-ks { 0% { opacity: 0; transform: translateX(64px); } 9% { opacity: 1; transform: translateX(-4px); } 13%, 84% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateX(40px); } }
+@keyframes svb-mw2-ff { 50% { opacity: 0.25; } }
 @keyframes svb-mw2-toast-in { 0% { transform: translateX(calc(-50% + 48px)); } 60% { transform: translateX(calc(-50% - 4px)); } 100% { transform: translateX(-50%); } }
 
 @container style(--theme-id: svoboden-modern-warfare-2) {
@@ -104,6 +108,10 @@ html { container-name: svb-root; }
   /* the developer's notifications on the dashboard: intel sheets with a cut corner */
   .nt-item { clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); background: linear-gradient(225deg, transparent 8.2px, rgba(var(--accent-rgb), 0.6) 8.2px 9.6px, transparent 9.6px), rgba(var(--surface-rgb), 0.55); }
   .nt-head em { background: var(--amber); }
+  /* the plates are cut at two corners: a focus ring is drawn inside, where the cut can't take it */
+  .mb.peek :focus-visible { outline-offset: -2px; }
+  /* the run counter hangs under the clock while a streak is on */
+  :root[data-streak] #clock { position: relative; }
 
   @media (prefers-reduced-motion: no-preference) {
     .mb.peek.in:not(.out) { animation: svb-mw2-card-in 0.42s cubic-bezier(0.2, 0.85, 0.3, 1) both; }
@@ -226,6 +234,61 @@ html { container-name: svb-root; }
     text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.55);
   }
 
+  /* a killstreak earned (data-streak-milestone): the reward card slides in at the top right, its icon and name by tier,
+     the run over it in amber; it leaves before the moment ends */
+  :root[data-streak-milestone] #top::before, :root[data-streak-break] #top::before {
+    --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3v15M3 10.5h18M8.5 18.5h7M6 10.5l-1.5 3M18 10.5l1.5 3'/%3E%3Ccircle cx='12' cy='10.5' r='1.7' fill='%2398d538'/%3E%3C/svg%3E"); content: "UAV"; position: fixed; top: 94px; right: 16px; z-index: 48; box-sizing: border-box; width: 252px; height: 46px; padding: 22px 0 0 58px;
+    white-space: nowrap; color: var(--hi); font: 600 17px/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.14em;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    background:
+      var(--svb-ks) 11px 50% / 24px no-repeat,
+      linear-gradient(135deg, transparent 8.2px, var(--accent) 8.2px 9.8px, transparent 9.8px) 0 0 / 13px 13px no-repeat,
+      linear-gradient(315deg, transparent 8.2px, var(--accent) 8.2px 9.8px, transparent 9.8px) 100% 100% / 13px 13px no-repeat,
+      linear-gradient(90deg, rgba(var(--accent-rgb), 0.16) 0 46px, rgba(var(--accent-rgb), 0.5) 46px 47px, transparent 47px),
+      linear-gradient(90deg, rgba(37, 37, 32, 0.96), rgba(20, 19, 15, 0.96));
+    box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.5), inset 0 -2px 0 rgba(var(--amber-rgb), 0.65);
+    pointer-events: none;
+  }
+  :root[data-streak-milestone] #ticker-meta::before, :root[data-streak-break] #ticker-meta::before {
+    counter-reset: svb-run var(--streak, 0); content: "KILLSTREAK " counter(svb-run); position: fixed; top: 102px; left: calc(100vw - 210px); z-index: 48;
+    color: var(--amber); font: 600 9px/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.3em; text-transform: none; pointer-events: none;
+  }
+  :root[data-streak-milestone="5"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='15' r='6'/%3E%3Cpath d='M12 12v6M9 15h6M12 2v6M9.5 5.5L12 8l2.5-2.5'/%3E%3C/svg%3E"); content: "PRECISION STRIKE"; }
+  :root[data-streak-milestone="7"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M12 7v3.5M12 13.5V17M7 12h3.5M13.5 12H17'/%3E%3C/svg%3E"); content: "GUNSHIP"; }
+  :root[data-streak-milestone="10"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 9a7 5 0 0 1 14 0M5 9l4.5 6M19 9l-4.5 6M12 9v6M9 15h6v6H9z'/%3E%3C/svg%3E"); content: "SUPPLY DROP"; }
+  :root[data-streak-milestone="15"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398d538' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M13 6l-4 7h4l-2 5 5-8h-4z'/%3E%3C/svg%3E"); content: "EMP"; }
+  :root[data-streak-milestone="25"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dcad00' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.30 9.06L7.50 4.21A9 9 0 0 1 16.50 4.21L13.70 9.06A3.4 3.4 0 0 0 10.30 9.06ZM15.40 12.00L21.00 12.00A9 9 0 0 1 16.50 19.79L13.70 14.94A3.4 3.4 0 0 0 15.40 12.00ZM10.30 14.94L7.50 19.79A9 9 0 0 1 3.00 12.00L8.60 12.00A3.4 3.4 0 0 0 10.30 14.94Z' fill='%23dcad00' stroke='none'/%3E%3Ccircle cx='12' cy='12' r='1.8' fill='%23dcad00' stroke='none'/%3E%3C/svg%3E"); content: "TACTICAL NUKE"; }
+  :root[data-streak-milestone="50"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dcad00' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='rotate(-30 12 12)'%3E%3Cpath d='M10 9h4v6h-4zM2.5 10H9v4H2.5zM15 10h6.5v4H15zM5.75 10v4M18.25 10v4M12 9V5.5M10 5.5h4'/%3E%3C/g%3E%3C/svg%3E"); content: "ORBITAL OVERWATCH"; }
+  :root[data-streak-milestone="100"] #top::before { --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23dcad00' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.5l3.2 7.5L12 8.2 8.8 10zM5.5 11.5l3.2 7.5-3.2-1.8-3.2 1.8zM18.5 11.5l3.2 7.5-3.2-1.8-3.2 1.8z'/%3E%3C/svg%3E"); content: "AIR SUPREMACY"; }
+  :root:is([data-streak-milestone="25"], [data-streak-milestone="50"], [data-streak-milestone="100"]) #top::before { box-shadow: inset 0 0 0 1px rgba(var(--amber-rgb), 0.75), inset 0 -2px 0 var(--amber), 0 0 18px rgba(var(--amber-rgb), 0.3); }
+  /* the UAV tier: the minimap's sweep runs hot while the card is up */
+  :root[data-streak-milestone="3"] #top::after { background: conic-gradient(transparent 0 200deg, rgba(95, 196, 180, 0.08) 200deg, rgba(95, 196, 180, 0.3) 350deg, rgba(186, 254, 186, 0.85) 359deg, transparent 0); }
+  /* a run that ended (data-streak-break): the same card in grey, a dog tag in the slot, KIA; never red, red is "needs you" */
+  :root[data-streak-break] #top::before {
+    --svb-ks: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23afafaf' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 7h8a2 2 0 0 1 2 2v9a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2zM12 7V2M9 13h6M9 16h4'/%3E%3Ccircle cx='12' cy='10' r='1'/%3E%3C/svg%3E"); content: "STREAK ENDED"; color: var(--txt2);
+    background:
+      var(--svb-ks) 11px 50% / 24px no-repeat,
+      linear-gradient(90deg, rgba(175, 175, 175, 0.12) 0 46px, rgba(175, 175, 175, 0.4) 46px 47px, transparent 47px),
+      linear-gradient(90deg, rgba(37, 37, 32, 0.96), rgba(20, 19, 15, 0.96));
+    box-shadow: inset 0 0 0 1px rgba(175, 175, 175, 0.4);
+  }
+  :root[data-streak-break] #ticker-meta::before { content: "KIA"; color: var(--dim); }
+  /* the run, live, under the clock (--streak) */
+  :root[data-streak] #clock::after {
+    counter-reset: svb-run var(--streak, 0); content: "STREAK " counter(svb-run); position: absolute; left: 0; top: calc(100% + 1px);
+    color: rgba(var(--amber-rgb), 0.85); font: 600 8px/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.24em; white-space: nowrap; pointer-events: none;
+  }
+  /* two chats on one file: FRIENDLY FIRE on files.heat while it lasts (data-same-file), blinking as it begins (data-clash);
+     amber, the panel's own red stays as the app draws it */
+  :root:is([data-same-file], [data-clash]) #p-files > header::before {
+    content: "FRIENDLY FIRE"; position: absolute; left: 92px; top: 3px; z-index: 1; padding: 2px 6px;
+    border: 1px solid rgba(var(--amber-rgb), 0.6); background: rgba(20, 19, 15, 0.88); color: var(--amber);
+    font: 600 9px/1 "Svb Barlow Condensed", var(--font); letter-spacing: 0.24em; pointer-events: none;
+  }
+  .mb.peek.clash .mb-text::before { content: "FRIENDLY FIRE // "; color: var(--amber); font: 600 1.05em "Svb Barlow Condensed", var(--font); letter-spacing: 0.2em; }
+  /* the theme picker previews a theme on every hover: the intro stands down while it is open, and plays once the view closes */
+  #app:has(> #themes-view.on) #ticker::before, #app:has(> #themes-view.on) #ticker::after { content: none; }
+
   @media (prefers-reduced-motion: no-preference) {
     #top::after { animation: svb-mw2-sweep 5s linear infinite; }
     #sessions::before { animation: svb-mw2-type 2.4s steps(14, end) 0.6s both; }
@@ -233,6 +296,12 @@ html { container-name: svb-root; }
     #ticker::after { content: "UPLINK ESTABLISHED"; animation: svb-mw2-uplink 1.15s ease-out 1 both; }
     .card.st-waiting::after { animation: svb-mw2-incoming 1s steps(1, end) infinite; }
     #boot:not(.gone) > p:not(.bootname)::after { animation: svb-mw2-load 1.6s steps(21, end) infinite; }
+    :root[data-streak-milestone] #top::before, :root[data-streak-milestone] #ticker-meta::before { animation: svb-mw2-ks 2.8s cubic-bezier(0.2, 0.85, 0.3, 1) 1 both; }
+    :root[data-streak-break] #top::before, :root[data-streak-break] #ticker-meta::before { animation: svb-mw2-ks 1.5s cubic-bezier(0.2, 0.85, 0.3, 1) 1 both; }
+    :root[data-streak-milestone="3"] #top::after { animation-duration: 1.2s; }
+    :root[data-clash] #p-files > header::before, :root[data-clash] .mb.peek.clash .mb-text::before { animation: svb-mw2-ff 0.5s steps(1, end) 3; }
+    /* a theme kept in the picker (data-theme-kept): the feed confirms, without the static */
+    :root[data-theme-kept="svoboden-modern-warfare-2"] #app:has(> #themes-view.on) #ticker::after { content: "UPLINK ESTABLISHED"; }
   }
   /* behind a chat window the decorations rest, as the app's own do; the INCOMING signal goes on */
   html.behind #top::after { animation-play-state: paused !important; }
@@ -245,11 +314,12 @@ html { container-name: svb-root; }
    The orbit map keeps its own (its children would otherwise inherit the sight), and so do text fields and the app's
    working cursors: resize lines, drag strips, dragging, busy, the level-up takeover's hidden one. What can't be clicked
    (disabled, a fixed key, an anonymous row, a strip on the one-column layout) gets the resting sight, never the pointer.
+   The file editor (Monaco, 0.19) keeps all of its own.
    Element rules only, in the unnamed gate: the named one would reach into the orbit map. */
 @container style(--theme-id: svoboden-modern-warfare-2) {
-  * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
+  *:not(.monaco-editor *, .context-view *, .monaco-sash) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
   :is(#activity .vs-ab, #board-view .lb-row, #git .vs-al, #git .vs-db, #git .vs-ph, #git .vs-r, #git .vs-si, #git .vs-sticky, #git .vs-sw, #git .vs-tab, #git .vs-tb, #hud button, #takeover.free, #viewctl button, .arc-btn, .askbox button, .brand, .card, .card .lights i, .dg-acts button, .dp-end, .dp-x, .gchip, .h-btns button, .hk-row button, .ks-all, .ks-key, .ks-undo, .lb-row, .lb-seg button, .lights i, .ln, .lvb[data-act], .mb.peek.fire, .mb.peek.note, .mb.peek.online, .mb.peek.update, .mb.peek.xp, .mb-actions button, .mb-input .send, .mb-more, .mb-msg.failed .b, .mb-switch button, .mb-text, .mb-x, .mn-btn, .mn-copy, .mn-ctx button, .mn-main[data-act], .mn-pick button, .mn-send, .mn-status, .mn-tabs button, .pie .hub, .pie .slice, .pk-bar button, .pk-crumbs span, .pk-ctx button, .pk-foot button, .pk-hid, .pk-place, .rf, .sc-ctx button, .sc-tile, .th-card, .topbtn, .wk, .yc, [role=button], a[href], button, input[type=button], input[type=checkbox], input[type=radio], input[type=submit], label, select, summary), :is(#activity .vs-ab, #board-view .lb-row, #git .vs-al, #git .vs-db, #git .vs-ph, #git .vs-r, #git .vs-si, #git .vs-sticky, #git .vs-sw, #git .vs-tab, #git .vs-tb, #hud button, #takeover.free, #viewctl button, .arc-btn, .askbox button, .brand, .card, .card .lights i, .dg-acts button, .dp-end, .dp-x, .gchip, .h-btns button, .hk-row button, .ks-all, .ks-key, .ks-undo, .lb-row, .lb-seg button, .lights i, .ln, .lvb[data-act], .mb.peek.fire, .mb.peek.note, .mb.peek.online, .mb.peek.update, .mb.peek.xp, .mb-actions button, .mb-input .send, .mb-more, .mb-msg.failed .b, .mb-switch button, .mb-text, .mb-x, .mn-btn, .mn-copy, .mn-ctx button, .mn-main[data-act], .mn-pick button, .mn-send, .mn-status, .mn-tabs button, .pie .hub, .pie .slice, .pk-bar button, .pk-crumbs span, .pk-ctx button, .pk-foot button, .pk-hid, .pk-place, .rf, .sc-ctx button, .sc-tile, .th-card, .topbtn, .wk, .yc, [role=button], a[href], button, input[type=button], input[type=checkbox], input[type=radio], input[type=submit], label, select, summary) * { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.3'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3Cpath d='M16 22v2 M10 16h-2 M22 16h2'/%3E%3C/g%3E%3Cg fill='none' stroke='%23f0c94a' stroke-width='1.5'%3E%3Ccircle cx='16' cy='16' r='6'/%3E%3Cpath d='M16 22v2 M10 16h-2 M22 16h2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.1' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, pointer !important; }
-  :is(:active, #mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='2.8'%3E%3Ccircle cx='16' cy='16' r='10.5'/%3E%3Cpath d='M16 26.5v3 M5.5 16h-3 M26.5 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1'%3E%3Ccircle cx='16' cy='16' r='10.5'/%3E%3Cpath d='M16 26.5v3 M5.5 16h-3 M26.5 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.3' fill='%23f2f0ec' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
+  :is(:active, #mw2#mw2#mw2):not(.monaco-editor *, .context-view *, .monaco-sash) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='2.8'%3E%3Ccircle cx='16' cy='16' r='10.5'/%3E%3Cpath d='M16 26.5v3 M5.5 16h-3 M26.5 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1'%3E%3Ccircle cx='16' cy='16' r='10.5'/%3E%3Cpath d='M16 26.5v3 M5.5 16h-3 M26.5 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='2.3' fill='%23f2f0ec' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, crosshair !important; }
   :is(#mapwrap, #mw2#mw2#mw2#mw2) { cursor: auto !important; }
   :is(textarea, input:not([type]), input[type=text], input[type=search], [contenteditable=""], [contenteditable=true], #mw2#mw2#mw2#mw2) { cursor: text !important; }
   :is(.pl-sash.y, .pl-gsash.y, body:has(#app.pl-rows), body:has(#app.pl-rows) *, #mw2#mw2#mw2#mw2) { cursor: row-resize !important; }
@@ -260,7 +330,7 @@ html { container-name: svb-root; }
   :is(.pl-panel > header, .pl-panel > header :not(button), .cw-title, .cw-title :not(button), #chatwin .mb-head, #chatwin .mb-head :not(button), #mw2#mw2#mw2#mw2) { cursor: grab !important; }
   :is(.topbtn.update.busy, #mw2#mw2#mw2#mw2) { cursor: progress !important; }
   :is(#app.pl-moving, #app.pl-moving *, #chatwin.dragging, #chatwin.dragging *, .cw-title:active, .cw-title:active *, #mw2#mw2#mw2#mw2#mw2) { cursor: grabbing !important; }
-  :is(:disabled, [disabled], :disabled *, .lb-row.anon, .ks-key.fixed, #mw2#mw2#mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, default !important; }
+  :is(:disabled, [disabled], :disabled *, .lb-row.anon, .lb-pod-c.anon, .ks-key.fixed, #git .vs-r.vs-nh, #git .vs-pact .vs-al.vs-st, #git .vs-bd.off > *, #mw2#mw2#mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, default !important; }
   :is(textarea:disabled, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: not-allowed !important; }
   :is(#takeover:not(.free), #takeover:not(.free) *, #mw2#mw2#mw2#mw2#mw2#mw2) { cursor: none !important; }
   @media (max-width: 920px) { :is(.pl-panel > header, .pl-panel > header :not(button), #mw2#mw2#mw2#mw2) { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.6' stroke-width='3.05'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Cg fill='none' stroke='%23dcad00' stroke-width='1.25'%3E%3Ccircle cx='16' cy='16' r='8'/%3E%3Cpath d='M16 24v3 M8 16h-3 M24 16h3'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.9' fill='%23f0c94a' stroke='%23000' stroke-opacity='.6' stroke-width='.8'/%3E%3C/svg%3E") 16 16, default !important; } }

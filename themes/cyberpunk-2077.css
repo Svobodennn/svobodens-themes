@@ -81,20 +81,31 @@ html { container-name: svb-root; }
   .nt-head b { font-family: "Svb Rajdhani", var(--font); font-size: 1.3em; letter-spacing: 0.04em; }
   .nt-head em { font-family: "Svb Orbitron", var(--font); font-weight: 600; }
 
-  /* context menus are a quickhack list: a cut-corner deck (its shadow kept), angled rows with room for their RAM cost */
-  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) {
+  /* context menus are a quickhack list: a cut-corner deck (its shadow kept), angled rows, the hacks with room for their
+     RAM cost (the account menu's rows keep their own right column, so no cost there) */
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx, .acct-menu) {
     border-radius: 0; border-color: rgba(var(--cyan-rgb), 0.55);
     clip-path: polygon(-40px -40px, calc(100% + 40px) -40px, calc(100% + 40px) calc(100% - 51px), calc(100% - 51px) calc(100% + 40px), -40px calc(100% + 40px));
     background-image: linear-gradient(to top left, transparent 50%, #5ef6ff 50% calc(50% + 2px), transparent calc(50% + 2px));
     background-size: 11px 11px; background-position: right bottom; background-repeat: no-repeat; background-origin: border-box;
   }
-  :is(.pk-ctx, .sc-ctx) .t { box-shadow: inset 2px 0 0 #fcee0a; color: rgba(var(--cyan-rgb), 0.85); }
-  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) hr { border-top-color: rgba(var(--cyan-rgb), 0.25); }
-  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button {
-    position: relative; padding-right: 46px; border-radius: 0; font: 700 12px "Svb Rajdhani", var(--font); letter-spacing: 0.08em; text-transform: uppercase;
+  :is(.pk-ctx, .sc-ctx) .t, .acct-menu-who { box-shadow: inset 2px 0 0 #fcee0a; }
+  :is(.pk-ctx, .sc-ctx) .t { color: rgba(var(--cyan-rgb), 0.85); }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx, .acct-menu) hr { border-top-color: rgba(var(--cyan-rgb), 0.25); }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx, .acct-menu) button {
+    position: relative; border-radius: 0; font: 700 12px "Svb Rajdhani", var(--font); letter-spacing: 0.08em; text-transform: uppercase;
     clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
   }
-  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:hover { background: linear-gradient(90deg, rgba(var(--cyan-rgb), 0.24), rgba(var(--cyan-rgb), 0.06)); box-shadow: inset 2px 0 0 #fcee0a; }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button { padding-right: 46px; }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx, .acct-menu) button:not(:disabled):hover { background: linear-gradient(90deg, rgba(var(--cyan-rgb), 0.24), rgba(var(--cyan-rgb), 0.06)); box-shadow: inset 2px 0 0 #fcee0a; }
+
+  /* keyboard focus inside the cut shapes: a cyan ring drawn inward, so the cut doesn't eat it (ink on the yellow ones) */
+  :is(.topbtn, .pn-ctx button, .mn-ctx button, .pk-ctx button, .sc-ctx button, .acct-menu button, .panel > header button):focus-visible { outline: 2px solid #5ef6ff; outline-offset: -3px; }
+  :is(.topbtn.primary, #sound.on):focus-visible { outline-color: var(--ink); }
+
+  /* a level-up is a STREET CRED level-up: the game's type on the app's own takeover (its text and sequence kept) */
+  #takeover.tk:is(.level, .rank) .tk-title { font-family: "Svb Rajdhani", var(--font); font-weight: 700; letter-spacing: 0.06em; }
+  #takeover.tk:is(.level, .rank) :is(.tk-sub, .tk-lv, .tk-hint) { font-family: "Svb Orbitron", var(--font); }
 
   /* a hacked display: cyan and coral ghosts tear the brand apart for a few frames, twice in a cycle */
   @keyframes svb-cp77-glitch {
@@ -208,6 +219,46 @@ html { container-name: svb-root; }
   :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:nth-of-type(2)::after { content: "4"; }
   :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:nth-of-type(3)::after { content: "6"; }
   :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:nth-of-type(4)::after { content: "8"; }
+  :is(.pn-ctx, .mn-ctx, .pk-ctx, .sc-ctx) button:disabled::after { opacity: 0.4; }
+
+  /* STREET CRED: the label over the app's level-up and a bar under its level line; the title's ghosts in cyan and coral */
+  #takeover.tk:is(.level, .rank) .tk-center::before {
+    content: "STREET CRED"; margin-bottom: 2.4vh; padding: 0.5em 1.9em 0.45em 1.1em; background: #fcee0a; color: #0e0e17;
+    font: 600 min(1.25vw, 2vh) "Svb Orbitron", var(--font); letter-spacing: 0.5em; clip-path: polygon(0 0, 100% 0, calc(100% - 0.9em) 100%, 0 100%);
+  }
+  #takeover.tk:is(.level, .rank) .tk-lv::after {
+    content: ""; display: block; height: 3px; margin-top: 1.4vh; transform-origin: 0 50%;
+    background: linear-gradient(90deg, #fcee0a 0 72%, #5ef6ff 72% 100%); box-shadow: 0 0 10px rgba(252, 238, 10, 0.5);
+  }
+  #takeover.tk:is(.level, .rank) .tk-title::before { color: rgba(94, 246, 255, 0.85); }
+  #takeover.tk:is(.level, .rank) .tk-title::after { color: rgba(255, 97, 89, 0.85); }
+
+  /* hooks: a run of clean tool results uploads like a quickhack (a toast under the top bar's right end, for the pulse's
+     3 s); with no hooks (a stock app) the attribute never comes and nothing shows */
+  :root[data-streak-milestone] #right::before {
+    counter-reset: run var(--streak); content: "\25B2  UPLOAD COMPLETE\A" counter(run) "  TOOLS RUN CLEAN";
+    position: fixed; top: 64px; right: 16px; z-index: 48; white-space: pre; pointer-events: none; padding: 7px 18px 8px 13px;
+    background: linear-gradient(#5ef6ff, #5ef6ff) left 13px bottom 4px / 46% 1px no-repeat, rgba(14, 14, 23, 0.94);
+    box-shadow: inset 3px 0 0 #fcee0a, 0 0 22px rgba(252, 238, 10, 0.18); color: #fcee0a; font: 600 9px/1.7 "Svb Orbitron", var(--font); letter-spacing: 0.2em;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+  }
+  /* hooks: two chats begin writing one file: a Relic malfunction tears the dashboard for 0.8 s (red is right here: it's an
+     alert), and the same-file notice's header takes a red and cyan sweep */
+  :root[data-clash] #top::before {
+    position: fixed; inset: 0; z-index: 48; pointer-events: none; display: flex; justify-content: center; align-items: flex-start; padding-top: 16vh;
+    color: var(--warn); font: 600 12px/1 "Svb Orbitron", var(--font); letter-spacing: 0.5em; text-shadow: -2px 0 rgba(94, 246, 255, 0.8), 2px 0 rgba(var(--warn-rgb), 0.6);
+    background:
+      linear-gradient(90deg, transparent 30%, rgba(var(--warn-rgb), 0.16) 30% 70%, transparent 70%) 0 calc(16vh - 9px) / 100% 30px no-repeat,
+      linear-gradient(90deg, transparent 8%, rgba(var(--warn-rgb), 0.22) 8% 51%, transparent 51%) 0 34vh / 100% 9px no-repeat,
+      linear-gradient(90deg, transparent 42%, rgba(94, 246, 255, 0.2) 42% 88%, transparent 88%) 0 calc(34vh + 11px) / 100% 3px no-repeat,
+      linear-gradient(90deg, transparent 57%, rgba(var(--warn-rgb), 0.18) 57% 97%, transparent 97%) 0 61vh / 100% 14px no-repeat,
+      linear-gradient(90deg, transparent 3%, rgba(94, 246, 255, 0.16) 3% 36%, transparent 36%) 0 79vh / 100% 6px no-repeat,
+      rgba(var(--warn-rgb), 0.05);
+  }
+  :root[data-clash] .mb.clash .mb-head::before {
+    position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(var(--warn-rgb), 0.55) 40%, rgba(94, 246, 255, 0.4) 60%, transparent);
+  }
 
   /* jack-in: on switching to this theme a yellow scan line wipes the screen once, the unscanned part dim and torn */
   #top::after {
@@ -242,7 +293,7 @@ html { container-name: svb-root; }
     12% { opacity: 1; transform: translate3d(3px, 0, 0); animation-timing-function: steps(1, end); }
     17% { opacity: 1; transform: translate3d(0, 0, 0); animation-timing-function: cubic-bezier(0.55, 0, 0.35, 1); }
     80% { opacity: 1; transform: translate3d(0, 100vh, 0); animation-timing-function: linear; }
-    100% { opacity: 0; transform: translate3d(0, 100vh, 0); }
+    100% { opacity: 0; transform: translate3d(0, 100vh, 0); visibility: hidden; }
   }
   /* the boot's scan line rolling down, slipping sideways once a pass */
   @keyframes svb-cp77-bootscan {
@@ -256,10 +307,34 @@ html { container-name: svb-root; }
   /* a holocall ringing: the level meter jumps */
   @keyframes svb-cp77-ring { 0% { transform: scaleY(1); } 25% { transform: scaleY(0.45); } 50% { transform: scaleY(0.8); } 75% { transform: scaleY(0.3); } }
 
+  /* STREET CRED's label glitching in, and its bar filling (both inside data-levelup's 1.6 s) */
+  @keyframes svb-cp77-cred {
+    0% { opacity: 0; transform: translateX(-10px); } 14% { opacity: 1; transform: translateX(5px); }
+    24% { opacity: 0.35; transform: translateX(-2px); } 34%, 100% { opacity: 1; transform: none; }
+  }
+  @keyframes svb-cp77-credbar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  /* the upload toast: slides in, holds, fades before the 3 s pulse ends */
+  @keyframes svb-cp77-upload { 0% { opacity: 0; transform: translateX(24px); } 9%, 86% { opacity: 1; transform: none; } 100% { opacity: 0; transform: none; visibility: hidden; } }
+  /* the Relic malfunction: torn frames, then gone, 0.8 s */
+  @keyframes svb-cp77-clash {
+    0% { opacity: 1; transform: translateX(-6px); } 12% { opacity: 0.35; transform: translateX(5px); } 22% { opacity: 1; transform: none; }
+    55% { opacity: 0.85; transform: translateX(-2px); } 62% { opacity: 1; transform: none; } 100% { opacity: 0; visibility: hidden; }
+  }
+  @keyframes svb-cp77-clashflash { from { transform: translateX(-100%); } to { transform: translateX(100%); visibility: hidden; } }
+
   /* motion only for those who allow it; the intro is the overlay itself, so "reduce motion" never draws it */
   @media (prefers-reduced-motion: no-preference) {
     #app::after { animation: svb-cp77-cursor 9s steps(1, end) infinite; }
     #top::after { content: ""; animation: svb-cp77-intro 1.1s both; }
+    /* the themes view previews a theme on every hover: no intro while it's open; it plays when it closes, on a real
+       switch, and once when a theme is kept there (data-theme-kept, where the app has hooks) */
+    #app:has(#themes-view.on) #top::after { content: none; }
+    :root[data-theme-kept] #app:has(#themes-view.on) #top::after { content: ""; }
+    :root[data-levelup] #takeover.tk:is(.level, .rank) .tk-center::before { animation: svb-cp77-cred 0.55s steps(1, end) both; }
+    :root[data-levelup] #takeover.tk:is(.level, .rank) .tk-lv::after { animation: svb-cp77-credbar 0.5s 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    :root[data-streak-milestone] #right::before { animation: svb-cp77-upload 2.9s ease-out both; }
+    :root[data-clash] #top::before { content: "\26A0  RELIC MALFUNCTION"; animation: svb-cp77-clash 0.8s steps(1, end) both; }
+    :root[data-clash] .mb.clash .mb-head::before { content: ""; animation: svb-cp77-clashflash 0.7s ease-in both; }
     #boot::after { animation: svb-cp77-bootscan 3s linear infinite; }
     #boot.gone::after { animation-play-state: paused; }
     .mb.peek .mb-head::after { animation: svb-cp77-ring 1.2s steps(1, end) infinite; }

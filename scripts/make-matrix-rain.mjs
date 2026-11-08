@@ -35,6 +35,8 @@ const LIGHTS = [
   { name: 'light-a', cell: FULL, drop: RAIN, seed: 11, cols: 41, rows: 52, step: 0.08 }, // the near, fast drops
   { name: 'light-b', cell: FULL, drop: RAIN, seed: 23, cols: 37, rows: 46, step: 0.125 }, // the far, slow ones
   { name: 'boot', cell: FULL, drop: DENSE, seed: 41, cols: 43, rows: 48, step: 0.07 }, // the launch screen's
+  // the idle screensaver's: it falls together with the grid, so its height must be a whole number of grid tiles
+  { name: 'idle', cell: FULL, drop: DENSE, seed: 71, cols: 41, rows: 62, step: 0.08, withGrid: 'grid' },
 ]
 const RAG = { name: 'rag', seed: 53, cols: 41, height: 480 } // matrix.css's intro uses the 480px
 const CARD = {
@@ -182,7 +184,12 @@ function block(tag, selector, decls, indent) {
     ...decls.map((d) => `${pad}  ${d}`), `${pad}}`, `${pad}/* ${tag}:end */`].join('\n')
 }
 
-const rain = [...GRIDS.flatMap((g) => props(g.name, gridTile(g))), ...LIGHTS.flatMap(lightProps), ...props(RAG.name, ragTile(RAG))]
+for (const l of LIGHTS.filter((x) => x.withGrid)) {
+  const g = GRIDS.find((x) => x.name === l.withGrid)
+  if ((l.rows * l.cell.h) % (g.rows * g.cell.h)) throw new Error(`make-matrix-rain: ${l.name} must be a whole number of ${g.name} tiles tall`)
+}
+const cell = [`--svb-mx-cell-w: ${FULL.w}px;`, `--svb-mx-cell-h: ${FULL.h}px;`]
+const rain = [...cell, ...GRIDS.flatMap((g) => props(g.name, gridTile(g))), ...LIGHTS.flatMap(lightProps), ...props(RAG.name, ragTile(RAG))]
 const card = [...props(CARD.grid.name, gridTile(CARD.grid)), ...lightProps(CARD.light)]
 
 let css = readFileSync(CSS, 'utf8')

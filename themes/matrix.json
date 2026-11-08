@@ -9,6 +9,6 @@
   "accent": "#c1ff75",
   "ansi": ["#0a1a0c", "#d23c32", "#00cc00", "#cccc00", "#4a8fe0", "#9a7ce0", "#3fd9c8", "#bbffbb",
            "#2f6b35", "#ff5a4e", "#88ff88", "#eeee55", "#7fb2ff", "#b9a4ff", "#7ff2e3", "#ddffdd"],
-  "ui": { "--theme-id": "svoboden-matrix" },
+  "ui": { "--theme-id": "svoboden-matrix", "--cursor-style": "block", "--cursor-blink": "1" },
   "glow": true
 }

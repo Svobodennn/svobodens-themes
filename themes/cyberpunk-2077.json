@@ -9,5 +9,5 @@
   "accent": "#fcee0a",
   "ansi": ["#121221", "#fe1038", "#1ded83", "#fcee0a", "#4f88d5", "#a24df6", "#00f0ff", "#c0c8cf",
            "#55557a", "#ff6159", "#dfff5e", "#ffd741", "#64a1ff", "#c084ff", "#5ef6ff", "#ffffff"],
-  "ui": { "--theme-id": "svoboden-cyberpunk-2077" }
+  "ui": { "--theme-id": "svoboden-cyberpunk-2077", "--cursor-style": "bar", "--cursor-blink": "1" }
 }

@@ -9,5 +9,5 @@
   "accent": "#98d538",
   "ansi": ["#252520", "#d9534f", "#7bad35", "#dcad00", "#5b86b0", "#9d7fb0", "#2d9485", "#b6ae85",
            "#5c5a52", "#ff6b5e", "#bafeba", "#f0c94a", "#8fb3d9", "#c4a6d8", "#5fc4b4", "#f2f0ec"],
-  "ui": { "--theme-id": "svoboden-modern-warfare-2" }
+  "ui": { "--theme-id": "svoboden-modern-warfare-2", "--cursor-style": "block", "--cursor-blink": "0" }
 }
