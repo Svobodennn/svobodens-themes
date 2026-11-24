@@ -24,9 +24,9 @@ To try them now in a source checkout of the app:
 npm run preview -- <Orbiterm checkout>   # then start mac/dev.sh there
 ```
 
-It edits that checkout's `mac/Resources/web` (the themes file and three pages) and adds a folder there. A checkout from
-before 0.23, when the Mac app was in `app/`, works too. This takes out what it put there and leaves any other change in
-that folder as it is:
+It edits that checkout's `mac/Resources/web` (the themes file, and every page there that links the app's own theme
+sheets) and adds a folder there. A checkout from before 0.23, when the Mac app was in `app/`, works too. This takes out
+what it put there and leaves any other change in that folder as it is:
 
 ```sh
 npm run preview -- <Orbiterm checkout> --undo
