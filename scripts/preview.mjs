@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Until the app has a marketplace: puts the pack into an Atalay's Terminal source checkout, as the app carries its own
-// MUR47 theme, so a dev build there (app/dev.sh) shows it:
+// Until the app has a marketplace: puts the pack into an Orbiterm source checkout, as the app carries its own MUR47
+// theme, so a dev build there (mac/dev.sh; app/dev.sh in a checkout from before 0.23) shows it:
 //   - the themes, after the app's own in web/themes/themes.json (read once at launch: restart the app after a change);
 //   - their style sheets and fonts in web/themes/<pack name>/, linked from the pages that load the app's theme sheets
 //     (⌘R reloads them), and their sounds in web/themes/<pack name>/sfx/, where the themes' --sfx tokens point.
@@ -8,11 +8,12 @@
 // and leaves other changes in that folder alone. Run again freely: the pack's previous themes, files and links are
 // replaced, never added twice. Either way everything is worked out before anything is written, so a page it can't patch
 // leaves the checkout as it was.
-// Usage: npm run preview -- <atalay-terminal checkout> [--undo]
+// Usage: npm run preview -- <Orbiterm checkout> [--undo]
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkPack } from './check.mjs'
+import { checkoutFolders } from './checkout.mjs'
 
 export const PAGES = ['index.html', 'messages.html', 'overlay.html']
 
@@ -58,12 +59,7 @@ export function mergeThemes(theirs, ours, publisher) {
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-/** The checkout's web folder, or why it isn't one. */
-function webFolder(target) {
-  const web = join(resolve(target), 'app/Resources/web')
-  if (!existsSync(join(web, 'themes/themes.json'))) throw new Error(`${web} is not an Atalay's Terminal web folder`)
-  return web
-}
+const webFolder = (target) => checkoutFolders(target).web
 
 /** Each page, read and changed by `change`, before anything is written. */
 const changedPages = (web, change) =>
@@ -141,7 +137,7 @@ if (process.argv[1] && real(process.argv[1]) === real(fileURLToPath(import.meta.
   const args = process.argv.slice(2)
   const targets = args.filter((a) => a !== '--undo')
   if (targets.length !== 1 || targets[0].startsWith('--')) {
-    console.error('usage: npm run preview -- <atalay-terminal checkout> [--undo]')
+    console.error('usage: npm run preview -- <Orbiterm checkout> [--undo]')
     process.exit(2)
   }
   try {

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Atalay's Terminal colour theme",
-  "description": "One theme in the app's own format (ThemeSpec in app/Sources/AtalayTerminal/Themes.swift, 0.16.0 and later). The app makes the rest of its look from these colours. scripts/check.mjs reads its colour rules from this file.",
+  "title": "Orbiterm colour theme",
+  "description": "One theme in the app's own format (ThemeSpec in mac/Sources/AtalayTerminal/Themes.swift, app/ before 0.23; 0.16.0 and later). The app makes the rest of its look from these colours. scripts/check.mjs reads its colour rules from this file.",
   "type": "object",
   "required": ["id", "name", "bg", "fg", "cursor", "selection", "accent", "ansi"],
   "additionalProperties": false,

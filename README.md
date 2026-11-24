@@ -1,7 +1,7 @@
 # Svoboden's Themes
 
-Colour themes for [Atalay's Terminal](https://github.com/atalaykarahan/atalay-terminal), each with touches from the film
-or game it comes from.
+Colour themes for [Orbiterm](https://github.com/atalaykarahan/orbiterm), each with touches from the film or game it
+comes from.
 
 ## Themes
 
@@ -16,24 +16,25 @@ decorations are our own drawings in the style of each, not artwork from them.
 
 ## Install
 
-Atalay's Terminal has no extension marketplace yet. Once it has one, find "Svoboden's Themes" there.
+Orbiterm has no extension marketplace yet. Once it has one, find "Svoboden's Themes" there.
 
 To try them now in a source checkout of the app:
 
 ```sh
-npm run preview -- <atalay-terminal checkout>   # then start app/dev.sh there
+npm run preview -- <Orbiterm checkout>   # then start mac/dev.sh there
 ```
 
-It edits that checkout's `app/Resources/web` (the themes file and three pages) and adds a folder there. This takes out
-what it put there and leaves any other change in that folder as it is:
+It edits that checkout's `mac/Resources/web` (the themes file and three pages) and adds a folder there. A checkout from
+before 0.23, when the Mac app was in `app/`, works too. This takes out what it put there and leaves any other change in
+that folder as it is:
 
 ```sh
-npm run preview -- <atalay-terminal checkout> --undo
+npm run preview -- <Orbiterm checkout> --undo
 ```
 
 The states a dev build rarely shows (notices, a chat that needs you, the boot screen, a level-up, the theme hooks) are
-one page away: `npm run playground -- <atalay-terminal checkout>` writes `app/Resources/web/svobodens-playground.html`
-there (and the pack's sheets beside it) and prints the command that opens it in Safari.
+one page away: `npm run playground -- <Orbiterm checkout>` writes `mac/Resources/web/svobodens-playground.html` there
+(and the pack's sheets beside it) and prints the command that opens it in Safari.
 
 ## Making a theme
 

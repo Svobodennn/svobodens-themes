@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// The theme playground: one page in an Atalay's Terminal checkout's web folder (app/Resources/web/svobodens-playground
-// .html) that shows the pack's themes in the states the dev build makes hard to reach: the notices, a chat that needs
-// you, the boot screen, the level-up takeover, the theme screen, the menus, and the theme hooks' attributes. Open it in
-// Safari, the engine of the app's WKWebView.
+// The theme playground: one page in an Orbiterm checkout's web folder (mac/Resources/web/svobodens-playground.html,
+// app/… before 0.23) that shows the pack's themes in the states the dev build makes hard to reach: the notices, a chat
+// that needs you, the boot screen, the level-up takeover, the theme screen, the menus, and the theme hooks' attributes.
+// Open it in Safari, the engine of the app's WKWebView.
 //   - three frames, the dashboard (index.html), the notices (messages.html) and the overlay (overlay.html), each with
 //     its page's own style sheets and the pack's, and the theme style the app writes (Themes.swift's script, read from
 //     the checkout), switched as the app switches it (window.__theme);
@@ -13,11 +13,12 @@
 //     the panel's sound box is ticked;
 //   - the pack's sheets and fonts are copied into web/themes/<pack>/ as `npm run preview` does; no tracked file of the
 //     checkout is touched.
-// Usage: npm run playground -- <atalay-terminal checkout>
+// Usage: npm run playground -- <Orbiterm checkout>
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkPack } from './check.mjs'
+import { checkoutFolders } from './checkout.mjs'
 import { copyPack, mergeThemes } from './preview.mjs'
 import { themeCss, tokensOf, UI_FONTS } from './derive.mjs'
 
@@ -140,8 +141,7 @@ export function build(target, root = fileURLToPath(new URL('..', import.meta.url
   const pkg = JSON.parse(read(join(root, 'package.json')))
   const entries = pkg.contributes.themes
   const checkout = resolve(target)
-  const web = join(checkout, 'app/Resources/web')
-  if (!existsSync(join(web, 'themes/themes.json'))) throw new Error(`${web} is not an Atalay's Terminal web folder`)
+  const { web, swift: swiftFile } = checkoutFolders(checkout)
 
   const ours = entries.map(({ path }) => {
     const { $schema, ...theme } = JSON.parse(read(join(root, path)))
@@ -151,7 +151,6 @@ export function build(target, root = fileURLToPath(new URL('..', import.meta.url
   const themes = mergeThemes(theirs, ours, pkg.publisher)
   const sheets = entries.filter((e) => e.css).map((e) => e.css.slice('./themes/'.length))
 
-  const swiftFile = join(checkout, 'app/Sources/AtalayTerminal/Themes.swift')
   const swift = existsSync(swiftFile) ? swiftTheme(read(swiftFile)) : null
   const theme = swift ? swift.js : SCRIPT_0190
   const refresh = swift && swift.refresh ? { mode: 'app', rule: swift.rule } : { mode: 'playground', rule: null, cls: OWN_REFRESH.cls }
@@ -172,7 +171,7 @@ export function build(target, root = fileURLToPath(new URL('..', import.meta.url
       id: t.id,
       name: t.name,
       glow: t.glow === true,
-      base: themeCss(t, themes[0], { uiFont: 'mono', refresh: false }),
+      base: themeCss(t, { uiFont: 'mono', refresh: false }),
       tokens: tokensOf(t),
     })),
     fonts: UI_FONTS,
@@ -222,7 +221,7 @@ const real = (p) => {
 }
 if (process.argv[1] && real(process.argv[1]) === real(fileURLToPath(import.meta.url))) {
   if (!process.argv[2]) {
-    console.error('usage: npm run playground -- <atalay-terminal checkout>')
+    console.error('usage: npm run playground -- <Orbiterm checkout>')
     process.exit(2)
   }
   try {

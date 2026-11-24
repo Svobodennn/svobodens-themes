@@ -447,10 +447,10 @@
     N().event(ev);
     C()?.event(ev);
   }
-  // Typed into the chat's own box and sent with ↩, as you would.
+  // Typed into the chat's own box and sent with ↩, as you would. Orbiterm 0.27's chat window has .fc-input, 0.19's .mb-input.
   function type(text) {
     const w = frames.chat.win;
-    const ta = frames.chat.doc.querySelector('.mb-input textarea');
+    const ta = frames.chat.doc.querySelector('.fc-input textarea, .mb-input textarea');
     ta.value = text;
     ta.dispatchEvent(new w.Event('input', { bubbles: true }));
     ta.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));

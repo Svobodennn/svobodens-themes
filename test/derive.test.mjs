@@ -4,9 +4,19 @@ import { readFileSync } from 'node:fs'
 import { derive, parse, themeCss, tokensOf } from '../scripts/derive.mjs'
 
 // Made once by the earlier Python port of the same Swift (see its "about"): upstream 0.19.0's themes and this pack's.
+// That port is gone, so the file stays as it made it. derive and tokens(of:) are the same in Orbiterm 0.27.0, so its
+// tokens still hold; its sheets are 0.19.0's, from before the orbit map took the theme (0.20.0), and are compared
+// without the one block 0.20.0 took out. Orbiterm's three newer themes (farukiskender, hk416, emir) aren't in it.
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/derive-python.json', import.meta.url), 'utf8'))
 const all = [...fixture.app, ...fixture.pack]
-const DEFAULT = fixture.app[0]
+
+// 0.19.0's sheet set the default theme's tokens again on the orbit map, from `#mapwrap#mapwrap{` to its background's
+// `fixed}`; Themes.swift dropped that and nothing else (0.19.2 → 0.20.0, and 0.27.0 is the same).
+const MAP_BLOCK = /#mapwrap#mapwrap\{[^{}]*?\) fixed\}/g
+const without019Map = (css) => {
+  assert.equal(css.match(MAP_BLOCK)?.length, 1, 'one map block in the 0.19.0 sheet')
+  return css.replace(MAP_BLOCK, '')
+}
 
 const ANSI = ['#101010', '#cc3333', '#33cc33', '#cccc33', '#3333cc', '#cc33cc', '#33cccc', '#cccccc',
   '#555555', '#ff5555', '#55ff55', '#ffff55', '#5555ff', '#ff55ff', '#55ffff', '#ffffff']
@@ -17,9 +27,9 @@ test("every theme's tokens match the Python port's, for upstream 0.19.0 and this
   for (const t of all) assert.deepEqual(tokensOf(t), fixture.tokens[t.id], t.id)
 })
 
-test("the style sheet matches the Python port's (the default, a plain theme, one with ui values, one that glows)", () => {
+test("the style sheet matches the Python port's, less the map block 0.20.0 dropped (the default, a plain theme, one with ui values, one that glows)", () => {
   assert.ok(Object.keys(fixture.css).length >= 4)
-  for (const [id, css] of Object.entries(fixture.css)) assert.equal(themeCss(all.find((t) => t.id === id), DEFAULT), css, id)
+  for (const [id, css] of Object.entries(fixture.css)) assert.equal(themeCss(all.find((t) => t.id === id)), without019Map(css), id)
 })
 
 test('the surfaces come only as triplets, a few colours as both, the rest as hex (77 tokens)', () => {
@@ -98,15 +108,15 @@ test("a theme's ui values win over what its palette makes", () => {
   assert.equal(derive(spec({ ui: { '--accent': '#010203' } }))['--accent'], '#ff8800')
 })
 
-test('the sheet: sorted tokens on the root, the default theme on the orbit map, glow, font and refresh only when asked', () => {
-  const plain = themeCss(spec(), spec({ id: 'd', accent: '#00ff00' }))
+test('the sheet: sorted tokens on the root and nothing for the orbit map, glow, font and refresh only when asked', () => {
+  const plain = themeCss(spec())
   assert.ok(plain.startsWith(':root:root{--a0:#101010;--a1:#cc3333;--a10:#55ff55;'))
-  const map = plain.slice(plain.indexOf('#mapwrap#mapwrap{'))
-  assert.ok(map.includes('--accent:#00ff00;'))
-  assert.ok(map.endsWith('radial-gradient(ellipse at 50% 40%,var(--bloom) 0%,var(--bg) 70%) fixed}'))
+  // One rule: the map reads the theme's own tokens from the root (orbit/theme.js).
+  assert.ok(plain.endsWith(';}') && plain.indexOf('}') === plain.length - 1, plain.slice(-80))
+  assert.ok(!plain.includes('#mapwrap'))
   assert.ok(!plain.includes('text-shadow'))
-  assert.ok(themeCss(spec({ glow: true }), spec()).includes('body{text-shadow:0 0 1px rgba(255,255,255,0.3)'))
-  assert.ok(!themeCss(spec({ glow: 'yes' }), spec()).includes('text-shadow'))
-  assert.ok(themeCss(spec(), spec(), { uiFont: 'system' }).endsWith(':root:root{--font:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif}'))
-  assert.ok(themeCss(spec(), spec(), { refresh: true }).endsWith('html.theme-swap *::before,html.theme-swap *::after{--theme-swap:1}'))
+  assert.ok(themeCss(spec({ glow: true })).includes('body{text-shadow:0 0 1px rgba(255,255,255,0.3)'))
+  assert.ok(!themeCss(spec({ glow: 'yes' })).includes('text-shadow'))
+  assert.ok(themeCss(spec(), { uiFont: 'system' }).endsWith(':root:root{--font:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;--font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif}'))
+  assert.ok(themeCss(spec(), { refresh: true }).endsWith('html.theme-swap *::before,html.theme-swap *::after{--theme-swap:1}'))
 })

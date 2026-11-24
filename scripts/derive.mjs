@@ -1,7 +1,9 @@
-// The app's theme tokens and theme style sheet, as Atalay's Terminal makes them (ThemeStore.derive, tokens(of:) and css
-// in app/Sources/AtalayTerminal/Themes.swift, 0.19.0): every colour the pages use comes from a theme's terminal palette
+// The app's theme tokens and theme style sheet, as Orbiterm makes them (ThemeStore.derive, tokens(of:) and css in
+// mac/Sources/AtalayTerminal/Themes.swift, 0.27.0): every colour the pages use comes from a theme's terminal palette
 // and accent, mixed in Oklab, and reaches each page as one <style> written before it loads. Ported line for line, so
 // the playground shows a theme in exactly the colours the app would; test/derive.test.mjs holds it to the app's output.
+// derive and tokens(of:) are as they were in 0.19.0; the sheet has set nothing on the orbit map since 0.20.0, which
+// reads the theme's own tokens (mac/orbit/theme.js).
 
 /** The interface fonts Settings offers (ThemeStore.uiFonts): the monospace adds nothing to the sheet. */
 export const UI_FONTS = [
@@ -205,17 +207,14 @@ const decl = (t) =>
     .map(([k, v]) => `${k}:${v};`)
     .join('')
 
-/** The style sheet the app writes into every page for `spec` (ThemeStore.css): its tokens on the root, the default
- *  theme's again on the orbit map, a neon theme's glow, the interface font Settings picked (`uiFont`: mono, system or
- *  rounded). `refresh`: the line a checkout with the theme hooks adds for __theme's pseudo-element refresh
- *  (`html.theme-swap …`), or false for a 0.19.0 app without it. */
-export function themeCss(spec, defaultSpec, { uiFont = 'mono', refresh = false } = {}) {
+/** The style sheet the app writes into every page for `spec` (ThemeStore.css): its tokens on the root, a neon theme's
+ *  glow, the interface font Settings picked (`uiFont`: mono, system or rounded). `refresh`: the line the theme hooks
+ *  end it with for __theme's pseudo-element refresh (`html.theme-swap …`, always there in 0.27.0), a checkout's own
+ *  line as a string, or false for none (the playground adds the checkout's own after the font, see assembleCss). */
+export function themeCss(spec, { uiFont = 'mono', refresh = false } = {}) {
   const font = UI_FONTS.find((f) => f.id === uiFont)?.css
   return (
-    `:root:root{${decl(tokensOf(spec))}}#mapwrap#mapwrap{${decl(tokensOf(defaultSpec))}` +
-    '--panel:rgba(var(--panel-rgb),var(--glass-a));--line:rgba(var(--accent-rgb),0.32);--line-soft:rgba(var(--accent-rgb),0.13);' +
-    'color:var(--txt);background:linear-gradient(rgba(var(--bg-rgb),0.6),rgba(var(--bg-rgb),0.6)),' +
-    'radial-gradient(ellipse at 50% 40%,var(--bloom) 0%,var(--bg) 70%) fixed}' +
+    `:root:root{${decl(tokensOf(spec))}}` +
     (spec.glow === true ? 'body{text-shadow:0 0 1px rgba(255,255,255,0.3),0 0 5px currentColor,0 0 12px rgba(var(--accent-rgb),0.5)}' : '') +
     (font ? `:root:root{--font:${font};--font-sans:${font}}` : '') +
     (refresh === true ? 'html.theme-swap *::before,html.theme-swap *::after{--theme-swap:1}' : typeof refresh === 'string' ? refresh : '')

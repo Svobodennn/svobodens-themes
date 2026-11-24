@@ -81,29 +81,49 @@ test('W7: --undo restores the checkout and touches nothing else there, or nothin
   assert.equal(readFileSync(join(web, 'hooks.js'), 'utf8'), 'someone else\'s work\n')
 })
 
-test("the preview installs the pack's sounds where its themes point, and --undo takes them out", () => {
+// Orbiterm keeps the Mac app in mac/ (0.23 on), Atalay's Terminal kept it in app/.
+for (const layout of ['mac', 'app']) {
+  test(`the preview installs the pack's sounds where its themes point, and --undo takes them out (${layout}/)`, () => {
+    const script = fileURLToPath(new URL('../scripts/preview.mjs', import.meta.url))
+    const root = fileURLToPath(new URL('..', import.meta.url))
+    const { name } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
+    const checkout = mkdtempSync(join(tmpdir(), 'svobodens-themes-sfx-'))
+    after(() => rmSync(checkout, { recursive: true, force: true }))
+    const web = join(checkout, layout, 'Resources/web')
+    mkdirSync(join(web, 'themes'), { recursive: true })
+    writeFileSync(join(web, 'themes/themes.json'), formatThemes([{ id: 'atalay' }]))
+    for (const p of PAGES) writeFileSync(join(web, p), page)
+
+    const run = spawnSync(process.execPath, [script, checkout], { encoding: 'utf8' })
+    assert.equal(run.status, 0, run.stderr)
+    // The app plays a sound token's path from its web folder.
+    const installed = JSON.parse(readFileSync(join(web, 'themes/themes.json'), 'utf8'))
+    const paths = installed.flatMap((t) => Object.entries(t.ui ?? {}).filter(([k, v]) => k.startsWith('--sfx-') && v !== 'none').map(([, v]) => v))
+    assert.ok(paths.length >= 20, `${paths.length} sounds`)
+    for (const path of paths) {
+      assert.ok(path.startsWith(`themes/${name}/sfx/`), path)
+      assert.ok(readFileSync(join(web, path)).equals(readFileSync(join(root, 'themes/sfx', path.slice(`themes/${name}/sfx/`.length)))), path)
+    }
+    for (const p of PAGES) assert.ok(readFileSync(join(web, p), 'utf8').includes(`<!-- ${name} -->`), p)
+
+    const undone = spawnSync(process.execPath, [script, checkout, '--undo'], { encoding: 'utf8' })
+    assert.equal(undone.status, 0, undone.stderr)
+    assert.ok(!existsSync(join(web, 'themes', name)))
+    assert.equal(readFileSync(join(web, 'themes/themes.json'), 'utf8'), formatThemes([{ id: 'atalay' }]))
+    for (const p of PAGES) assert.equal(readFileSync(join(web, p), 'utf8'), page, p)
+  })
+}
+
+test('the command line names Orbiterm: its usage, and a folder that is no checkout', () => {
   const script = fileURLToPath(new URL('../scripts/preview.mjs', import.meta.url))
-  const root = fileURLToPath(new URL('..', import.meta.url))
-  const { name } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
-  const checkout = mkdtempSync(join(tmpdir(), 'svobodens-themes-sfx-'))
-  after(() => rmSync(checkout, { recursive: true, force: true }))
-  const web = join(checkout, 'app/Resources/web')
-  mkdirSync(join(web, 'themes'), { recursive: true })
-  writeFileSync(join(web, 'themes/themes.json'), formatThemes([{ id: 'atalay' }]))
-  for (const p of PAGES) writeFileSync(join(web, p), page)
-
-  const run = spawnSync(process.execPath, [script, checkout], { encoding: 'utf8' })
-  assert.equal(run.status, 0, run.stderr)
-  // The app plays a sound token's path from its web folder.
-  const installed = JSON.parse(readFileSync(join(web, 'themes/themes.json'), 'utf8'))
-  const paths = installed.flatMap((t) => Object.entries(t.ui ?? {}).filter(([k, v]) => k.startsWith('--sfx-') && v !== 'none').map(([, v]) => v))
-  assert.ok(paths.length >= 20, `${paths.length} sounds`)
-  for (const path of paths) {
-    assert.ok(path.startsWith(`themes/${name}/sfx/`), path)
-    assert.ok(readFileSync(join(web, path)).equals(readFileSync(join(root, 'themes/sfx', path.slice(`themes/${name}/sfx/`.length)))), path)
+  const usage = spawnSync(process.execPath, [script], { encoding: 'utf8' })
+  assert.equal(usage.status, 2)
+  assert.match(usage.stderr, /^usage: npm run preview -- <Orbiterm checkout> \[--undo\]/)
+  const empty = mkdtempSync(join(tmpdir(), 'svobodens-themes-none-'))
+  after(() => rmSync(empty, { recursive: true, force: true }))
+  for (const args of [[empty], [empty, '--undo']]) {
+    const run = spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' })
+    assert.equal(run.status, 1, args.join(' '))
+    assert.match(run.stderr, /is not an Orbiterm checkout/)
   }
-
-  const undone = spawnSync(process.execPath, [script, checkout, '--undo'], { encoding: 'utf8' })
-  assert.equal(undone.status, 0, undone.stderr)
-  assert.ok(!existsSync(join(web, 'themes', name)))
 })

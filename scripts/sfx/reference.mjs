@@ -1,6 +1,6 @@
 // How loud the app's own sounds are, so a theme's stand in at the same level: sfx.js's notes, swell and output bus
-// (out 0.9, an echo of 0.13 s at feedback 0.28 and wet 0.3), rendered here as Web Audio renders them (Atalay's Terminal
-// 0.19). A file the app plays with new Audio() goes out at volume 1, so its samples compare with these directly.
+// (out 0.9, an echo of 0.13 s at feedback 0.28 and wet 0.3), rendered here as Web Audio renders them (Atalay's
+// Terminal 0.19). A file the app plays with new Audio() goes out at volume 1, so its samples compare with these directly.
 import { loudness, osc, RATE, samples, silence } from './dsp.mjs'
 
 // AudioParam.exponentialRampToValueAtTime between [time, value] points; the first value before, the last after.

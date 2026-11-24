@@ -1,10 +1,12 @@
-import { test } from 'node:test'
+import { after, test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { assembleCss, codicons, CSS_SLOT, FRAMES, frameDoc, FRIEND_SLOT, OWN_REFRESH, pageParts, swiftTheme } from '../scripts/playground.mjs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { assembleCss, build, codicons, CSS_SLOT, FRAMES, frameDoc, FRIEND_SLOT, OWN_REFRESH, pageParts, swiftTheme } from '../scripts/playground.mjs'
 import { themeCss, UI_FONTS } from '../scripts/derive.mjs'
 
-// ThemeStore.script as Atalay's Terminal 0.19.0 has it, and as the theme hooks change it (Themes.swift).
+// ThemeStore.script as Atalay's Terminal 0.19.0 had it, and as the theme hooks changed it (Orbiterm 0.27's is the same).
 const swift = (body, rule = '') => `    var css: String {
         return ":root:root{}"${rule ? `\n            + "${rule}"` : ''}
     }
@@ -64,10 +66,9 @@ test('a Swift shaped otherwise gives nothing, rather than a broken script', () =
 
 test('the page assembles each theme as ThemeStore.css does, for every font and with or without the refresh', () => {
   const spec = { id: 't', name: 'T', bg: '#101820', fg: '#e0e0e0', cursor: '#ffffff', selection: '#334455', accent: '#ff8800', ansi: [], glow: true }
-  const def = { ...spec, id: 'd', glow: false }
-  const base = themeCss(spec, def)
+  const base = themeCss(spec)
   for (const { id, css } of UI_FONTS) {
-    for (const refresh of [false, true]) assert.equal(assembleCss(base, css, refresh ? SWAP : null), themeCss(spec, def, { uiFont: id, refresh }), `${id} ${refresh}`)
+    for (const refresh of [false, true]) assert.equal(assembleCss(base, css, refresh ? SWAP : null), themeCss(spec, { uiFont: id, refresh }), `${id} ${refresh}`)
   }
 })
 
@@ -134,3 +135,28 @@ test("a friend's chat is messages.html as a chat panel, its friend filled into t
   assert.equal(win.__MESSAGES_ROLE__, 'chat')
   assert.equal(win.__MESSAGES_FRIEND__, 'f-vee')
 })
+
+// Orbiterm keeps the Mac app in mac/ (0.23 on), Atalay's Terminal kept it in app/: the page and the theme script come
+// from whichever the checkout has.
+for (const layout of ['mac', 'app']) {
+  test(`the playground reads a checkout's pages and its Themes.swift from ${layout}/`, () => {
+    const checkout = mkdtempSync(join(tmpdir(), 'svobodens-themes-pg-'))
+    after(() => rmSync(checkout, { recursive: true, force: true }))
+    const web = join(checkout, layout, 'Resources/web')
+    mkdirSync(join(web, 'themes'), { recursive: true })
+    const app = { id: 'atalay', name: 'Atalay', bg: '#120804', fg: '#f5ebe0', cursor: '#f88008', selection: '#5a3010', accent: '#f88008', ansi: [] }
+    writeFileSync(join(web, 'themes/themes.json'), JSON.stringify([app]))
+    for (const page of ['index.html', 'messages.html', 'overlay.html']) writeFileSync(join(web, page), PAGE)
+
+    const withoutSwift = build(checkout)
+    assert.equal(withoutSwift.web, web)
+    assert.equal(withoutSwift.summary.refresh, 'playground')
+
+    const swiftFile = join(checkout, layout, 'Sources/AtalayTerminal/Themes.swift')
+    mkdirSync(join(swiftFile, '..'), { recursive: true })
+    writeFileSync(swiftFile, swift(HOOKS, SWAP))
+    const withSwift = build(checkout)
+    assert.equal(withSwift.summary.refresh, 'app')
+    assert.ok(withSwift.page.includes(JSON.stringify(SWAP).slice(1, -1)))
+  })
+}
