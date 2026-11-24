@@ -17,7 +17,7 @@ const theme = (over = {}) => ({
 const entry = (over = {}) => ({ id: 'svoboden-test', label: 'Test', uiTheme: 'vs-dark', path: './themes/test.json', ...over })
 const manifest = (themes = [entry()]) => ({
   name: 'svobodens-themes', displayName: "Svoboden's Themes", version: '0.0.1', publisher: 'svoboden',
-  engines: { 'atalay-terminal': '>=0.16.0' }, categories: ['Themes'], contributes: { themes },
+  engines: { 'atalay-terminal': '>=0.20.0' }, categories: ['Themes'], contributes: { themes },
 })
 
 const roots = []
@@ -33,6 +33,16 @@ const pack = (pkg, files) => {
   }
   return root
 }
+
+// The themes lean on 0.20.0: its theme hooks (sounds, cursor, the pseudo-element refresh) and an orbit map that takes the
+// theme's colours itself, so the sheets leave it ungraded.
+test('engines asks for the app at 0.20.0 or later, as ">=x.y.z"', () => {
+  const engines = (value) => checkManifest({ ...manifest(), engines: value === undefined ? {} : { 'atalay-terminal': value } })
+  for (const ok of ['>=0.20.0', '>= 0.20.0', '>=0.27.1', '>=1.0.0']) assert.deepEqual(engines(ok), [], ok)
+  const floor = 'engines["atalay-terminal"] is not ">=x.y.z" from 0.20.0 on (theme hooks, the map in the theme\'s colours)'
+  for (const bad of ['>=0.16.0', '>=0.19.2', '0.20.0', '^0.20.0', '>=0.20', '>=0.21', '>=0.20.0 <1']) assert.deepEqual(engines(bad), [floor], bad)
+  for (const missing of [undefined, '', 20]) assert.deepEqual(engines(missing), ['engines["atalay-terminal"] is missing'], String(missing))
+})
 
 test('a theme the app ships passes, with the optional ui, glow and $schema', () => {
   assert.deepEqual(checkTheme(theme()), [])

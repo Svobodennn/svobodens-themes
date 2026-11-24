@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "engines": {
-    "atalay-terminal": ">=0.16.0"
+    "atalay-terminal": ">=0.20.0"
   },
   "categories": [
     "Themes"

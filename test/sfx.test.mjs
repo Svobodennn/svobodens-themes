@@ -59,7 +59,7 @@ function pack(ui, files = {}) {
   roots.push(root)
   const pkg = {
     name: 'svobodens-themes', displayName: "Svoboden's Themes", version: '0.0.1', publisher: 'svoboden',
-    engines: { 'atalay-terminal': '>=0.16.0' }, categories: ['Themes'],
+    engines: { 'atalay-terminal': '>=0.20.0' }, categories: ['Themes'],
     contributes: { themes: [{ id: ID, label: 'Test', uiTheme: 'vs-dark', path: './themes/test.json' }] },
   }
   const theme = {

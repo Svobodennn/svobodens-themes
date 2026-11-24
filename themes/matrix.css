@@ -265,15 +265,12 @@ html { container-name: svb-root; }
   html.behind #chatwin .pr::after { animation-play-state: paused !important; }
 }
 
-/* ===== the orbit map, on the operator's green screen. The map keeps the default theme's tokens (Themes.swift sets them
-   again on #mapwrap) and the unnamed gate is closed there, so this gate is named too, element rules and all, every
-   selector starting at #mapwrap (a hook on :root may come before it), and it names the theme's colours. The idle
-   screensaver (#top::after above) already covers the map. ===== */
+/* ===== the orbit map, on the operator's green screen. Since 0.20 the map takes the theme's tokens itself
+   (orbit/theme.js), so its picture, minimap and legend keys are left as the app draws them. The unnamed gate is still
+   closed there by the `#mapwrap { --theme-id: none }` reset, which is why this block sits in the svb-root gate, element
+   rules and all, every selector starting at #mapwrap (a hook on :root may come before it). The idle screensaver
+   (#top::after above) already covers the map. ===== */
 @container svb-root style(--theme-id: svoboden-matrix) {
-  /* green phosphor: greys and whites take the screen's green, the four status colours keep their hue (needs you stays
-     red, and no two come closer than before). The legend's keys and the minimap take the same grade, so they still
-     match. One filter, never animated */
-  #mapwrap :is(#space > canvas, #minimap, .legend i) { filter: hue-rotate(-70deg) sepia(0.4) hue-rotate(70deg) saturate(1.8) contrast(1.15); }
   /* the screen's glass sits between the picture and the labels, so the labels stay on top as they were */
   #mapwrap #space { isolation: isolate; }
   #mapwrap #space > .labels { z-index: 2; }
@@ -295,8 +292,7 @@ html { container-name: svb-root; }
   #mapwrap :is(#tip, #pwr-tip) { border-color: rgba(193, 255, 117, 0.6); box-shadow: 0 0 18px rgba(193, 255, 117, 0.22); }
   #mapwrap .cine-tag { border-color: rgba(137, 247, 110, 0.35); color: #89f76e; }
 
-  /* power save (the map at 30 fps): the grade and the glass stand down, a pass fewer in every frame */
-  #mapwrap:has(> #pwr.on) :is(#space > canvas, #minimap, .legend i) { filter: none; }
+  /* power save (the map at 30 fps): the glass stands down, a pass fewer in every frame */
   #mapwrap:has(> #pwr.on) #space::after { content: none; }
 
   /* hooks: deja vu (data-clash) jolts the map with the rest of the dashboard, the same jolt twice; a run of good results

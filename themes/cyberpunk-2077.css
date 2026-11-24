@@ -480,15 +480,11 @@ html { container-name: svb-root; }
   #chatwin .mb-empty::before { content: "HOLOCALL \B7  LINE OPEN"; display: block; margin-bottom: 10px; color: #fcee0a; font: 600 8px/1.2 "Svb Orbitron", var(--font); letter-spacing: 0.3em; }
 }
 
-/* ===== The orbit map, seen through Kiroshi optics. The map keeps the default theme's tokens (Themes.swift sets them
-   again on #mapwrap, so var(--accent) there is orange) and the unnamed gate is closed there, so this block is in the
-   svb-root gate, element rules too, every selector starting at #mapwrap (a hook on :root may come before it), and it
-   names the theme's colours outright. ===== */
+/* ===== The orbit map, seen through Kiroshi optics. Since 0.20 the map takes the theme's tokens itself (orbit/theme.js),
+   so its picture, minimap and legend keys are left as the app draws them. The unnamed gate is still closed there by the
+   `#mapwrap { --theme-id: none }` reset, which is why this block sits in the svb-root gate, element rules too, every
+   selector starting at #mapwrap (a hook on :root may come before it). ===== */
 @container svb-root style(--theme-id: svoboden-cyberpunk-2077) {
-  /* the optics' cool cast: greys and whites go steel-cyan, the four status colours keep their hue (8 degrees at most;
-     needs you stays red). The legend's keys and the minimap take the same grade, so they still match the map. One
-     filter, never animated */
-  #mapwrap :is(#space > canvas, #minimap, .legend i) { filter: hue-rotate(-150deg) sepia(0.3) hue-rotate(150deg) saturate(2.2); }
   /* the optics' overlays sit between the picture and the labels, so the labels stay on top as they were */
   #mapwrap #space { isolation: isolate; }
   #mapwrap #space > .labels { z-index: 2; }
@@ -529,8 +525,7 @@ html { container-name: svb-root; }
   #mapwrap :is(#tip, #pwr-tip) { border-color: rgba(94, 246, 255, 0.6); box-shadow: inset 2px 0 0 #fcee0a, 0 0 18px rgba(94, 246, 255, 0.2); }
   #mapwrap .cine-tag { border-color: rgba(94, 246, 255, 0.4); color: #5ef6ff; }
 
-  /* power save (the map at 30 fps): the grade and the frame stand down, a pass fewer in every frame */
-  #mapwrap:has(> #pwr.on) :is(#space > canvas, #minimap, .legend i) { filter: none; }
+  /* power save (the map at 30 fps): the frame stands down, a pass fewer in every frame */
   #mapwrap:has(> #pwr.on) #space::after { content: none; }
 
   /* hooks: a clean run uploads (data-streak-milestone) and the optics scan the map, a yellow line with its cyan wash
