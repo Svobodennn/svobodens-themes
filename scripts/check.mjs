@@ -21,6 +21,16 @@ const UI_RULES = [
   ...Object.entries(schema.properties.ui.patternProperties).map(([p, s]) => ({ applies: (k) => new RegExp(p).test(k), ref: s.$ref })),
 ]
 const SEMVER = /^\d+\.\d+\.\d+$/
+// The first release with the theme hooks (sounds, cursor, the pseudo-element refresh) and an orbit map that takes the
+// theme's colours itself, which the sheets now leave ungraded: 0.20.0 (upstream's version commit ef140b7).
+const MIN_APP = [0, 20, 0]
+const fromMinApp = (range) => {
+  const m = range.match(/^>=\s*(\d+)\.(\d+)\.(\d+)$/)
+  if (!m) return false
+  const v = m.slice(1).map(Number)
+  const i = v.findIndex((n, k) => n !== MIN_APP[k])
+  return i === -1 || v[i] > MIN_APP[i]
+}
 const PATH = /^\.\/themes\/[^/]+\.json$/
 const CSS_PATH = /^\.\/themes\/[^/]+\.css$/
 const FONT = /\.(ttf|otf|woff2?)$/i
@@ -86,7 +96,9 @@ export function checkManifest(pkg) {
   if (!nonEmpty(pkg.displayName)) errors.push('displayName is empty')
   if (!(typeof pkg.version === 'string' && SEMVER.test(pkg.version))) errors.push('version is not x.y.z')
   if (!(typeof pkg.publisher === 'string' && SLUG.test(pkg.publisher))) errors.push('publisher is not lowercase-with-dashes')
-  if (!nonEmpty(pkg.engines?.['atalay-terminal'])) errors.push('engines["atalay-terminal"] is missing')
+  const engine = pkg.engines?.['atalay-terminal']
+  if (!nonEmpty(engine)) errors.push('engines["atalay-terminal"] is missing')
+  else if (!fromMinApp(engine)) errors.push(`engines["atalay-terminal"] is not ">=x.y.z" from ${MIN_APP.join('.')} on (theme hooks, the map in the theme's colours)`)
   if (!Array.isArray(pkg.categories) || !pkg.categories.includes('Themes')) errors.push('categories lacks "Themes"')
   const list = pkg.contributes?.themes
   if (!Array.isArray(list)) return [...errors, 'contributes.themes is not a list']

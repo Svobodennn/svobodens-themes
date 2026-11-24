@@ -4,18 +4,20 @@
 //   - the themes, after the app's own in web/themes/themes.json (read once at launch: restart the app after a change);
 //   - their style sheets and fonts in web/themes/<pack name>/, linked from the pages that load the app's theme sheets
 //     (⌘R reloads them), and their sounds in web/themes/<pack name>/sfx/, where the themes' --sfx tokens point.
-// It edits tracked files of that checkout (themes.json and the three pages); `--undo` takes out only what it put there
+// It edits tracked files of that checkout (themes.json, and every page of the web folder that links the app's own theme
+// sheets: index, messages and overlay, and in Orbiterm feed and note too); `--undo` takes out only what it put there
 // and leaves other changes in that folder alone. Run again freely: the pack's previous themes, files and links are
 // replaced, never added twice. Either way everything is worked out before anything is written, so a page it can't patch
 // leaves the checkout as it was.
 // Usage: npm run preview -- <Orbiterm checkout> [--undo]
-import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkPack } from './check.mjs'
 import { checkoutFolders } from './checkout.mjs'
 
-export const PAGES = ['index.html', 'messages.html', 'overlay.html']
+/** The playground's page (scripts/playground.mjs) sits in the same folder; the preview never patches it. */
+export const PLAYGROUND_PAGE = 'svobodens-playground.html'
 
 const markers = (name) => [`<!-- ${name} -->`, `<!-- /${name} -->`]
 
@@ -41,6 +43,12 @@ export function patchPage(html, name, sheets) {
   return out.slice(0, head) + block + out.slice(head)
 }
 
+const APP_SHEET = /<link\b[^>]*\bhref\s*=\s*["']themes\/[^"']+\.css["']/i
+
+/** Whether a page links one of the app's own theme sheets (web/themes/*.css, MUR47's and the others): the pages the
+ *  app's themes reach, so the ones the pack's sheets go in. The pack's own block doesn't count. */
+export const linksAppThemes = (html, name) => APP_SHEET.test(unpatchPage(html, name))
+
 /** A JSON value spaced as the app's themes file is: Python's json.dumps, ", " and ": ". */
 const dumps = (value) => {
   if (Array.isArray(value)) return `[${value.map(dumps).join(', ')}]`
@@ -61,17 +69,28 @@ const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const webFolder = (target) => checkoutFolders(target).web
 
-/** Each page, read and changed by `change`, before anything is written. */
+/** The web folder's own pages (its *.html, not those in folders below), the playground's left out, each read and given
+ *  to `change` before anything is written: `{ page, file, before, after }` for each it returns a text for (null: not
+ *  one to touch). Pages come and go between versions (0.19 has no feed.html), so they are found, not listed. */
 const changedPages = (web, change) =>
-  PAGES.map((page) => {
-    const file = join(web, page)
-    try {
-      const html = readFileSync(file, 'utf8')
-      return [file, html, change(html)]
-    } catch (error) {
-      throw new Error(`${page}: ${error.message}`)
-    }
-  })
+  readdirSync(web, { withFileTypes: true })
+    .filter((d) => d.isFile() && d.name.endsWith('.html') && d.name !== PLAYGROUND_PAGE)
+    .map((d) => d.name)
+    .sort()
+    .flatMap((page) => {
+      const file = join(web, page)
+      try {
+        const before = readFileSync(file, 'utf8')
+        const after = change(before)
+        return after === null ? [] : [{ page, file, before, after }]
+      } catch (error) {
+        throw new Error(`${page}: ${error.message}`)
+      }
+    })
+const write = (pages) => {
+  for (const { file, before, after } of pages) if (after !== before) writeFileSync(file, after)
+}
+const names = (pages) => pages.map((p) => p.page).join(', ') || 'no page'
 
 /** Takes out what main() put into the checkout: the pack's themes, its marked blocks and its folder. Only the pack's
  *  name and publisher are read, so it works on a pack that doesn't pass its check. */
@@ -83,12 +102,12 @@ function undo(target) {
   const themesFile = join(web, 'themes/themes.json')
   const theirs = JSON.parse(readFileSync(themesFile, 'utf8'))
   const themes = mergeThemes(theirs, [], publisher)
-  const pages = changedPages(web, (html) => unpatchPage(html, name))
+  const pages = changedPages(web, (html) => (html.includes(markers(name)[0]) ? unpatchPage(html, name) : null))
 
   if (themes.length !== theirs.length) writeFileSync(themesFile, formatThemes(themes))
   rmSync(join(web, 'themes', name), { recursive: true, force: true })
-  for (const [file, before, after] of pages) if (after !== before) writeFileSync(file, after)
-  return `${theirs.length - themes.length} themes and the links in ${PAGES.join(', ')} taken out, themes/${name} removed`
+  write(pages)
+  return `${theirs.length - themes.length} themes and the links in ${names(pages)} taken out, themes/${name} removed`
 }
 
 /** Copies the pack's own files into the app's web folder, `folder` (web/themes/<pack name>/): the style sheets, their
@@ -114,7 +133,12 @@ function main(target) {
   const theirs = JSON.parse(readFileSync(themesFile, 'utf8'))
   const themes = mergeThemes(theirs, ours, pkg.publisher)
   const sheets = entries.filter((e) => e.css).map((e) => e.css.slice('./themes/'.length))
-  const pages = changedPages(web, (html) => patchPage(html, pkg.name, sheets))
+  // A page that has the pack's block but no longer links the app's sheets only loses the block.
+  const pages = changedPages(web, (html) =>
+    linksAppThemes(html, pkg.name) ? patchPage(html, pkg.name, sheets) : html.includes(markers(pkg.name)[0]) ? unpatchPage(html, pkg.name) : null,
+  )
+  const linked = pages.filter((p) => linksAppThemes(p.after, pkg.name))
+  if (!linked.length) throw new Error(`no page in ${web} links the app's theme sheets (themes/*.css)`)
 
   writeFileSync(themesFile, formatThemes(themes))
   // The folder is this script's own output, so it is replaced whole and nothing renamed is left behind.
@@ -122,8 +146,8 @@ function main(target) {
   rmSync(folder, { recursive: true, force: true })
   mkdirSync(folder, { recursive: true })
   copyPack(ROOT, folder, sheets)
-  for (const [file, , html] of pages) writeFileSync(file, html)
-  return `${ours.length} themes after the app's ${themes.length - ours.length}, ${sheets.length} style sheets linked in ${PAGES.join(', ')}, their sounds in themes/${pkg.name}/sfx`
+  write(pages)
+  return `${ours.length} themes after the app's ${themes.length - ours.length}, ${sheets.length} style sheets linked in ${names(linked)}, their sounds in themes/${pkg.name}/sfx`
 }
 
 const real = (p) => {

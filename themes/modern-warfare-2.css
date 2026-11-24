@@ -376,16 +376,13 @@ html { container-name: svb-root; }
   }
 }
 
-/* ===== the orbit map, on the gunship's thermal camera. The map keeps the default theme's tokens (Themes.swift sets them
-   again on #mapwrap) and the unnamed gate is closed there, so this gate is the named one, element rules and all, every
-   selector starting at #mapwrap (a hook on :root may come before it), and it names the theme's colours. ===== */
+/* ===== the orbit map, on the gunship's thermal camera. Since 0.20 the map takes the theme's tokens itself
+   (orbit/theme.js), so its picture, minimap and legend keys are left as the app draws them. The unnamed gate is still
+   closed there by the `#mapwrap { --theme-id: none }` reset, which is why this block sits in the svb-root gate, element
+   rules and all, every selector starting at #mapwrap (a hook on :root may come before it). ===== */
 /* the UAV's sweep over the map, twice round, then gone */
 @keyframes svb-mw2-mapuav { 0% { opacity: 0; transform: rotate(0deg); } 8%, 86% { opacity: 1; } 100% { opacity: 0; transform: rotate(720deg); visibility: hidden; } }
 @container svb-root style(--theme-id: svoboden-modern-warfare-2) {
-  /* white-hot: the colour drained to a partial grade and the hot parts blown out white, the four status colours kept
-     apart by their hue (needs you stays red). The legend's keys and the minimap take the same grade, so they still
-     match. One filter, never animated */
-  #mapwrap :is(#space > canvas, #minimap, .legend i) { filter: saturate(0.5) contrast(1.4) brightness(1.08); }
   /* the sight sits between the picture and the labels, so the labels stay on top as they were */
   #mapwrap #space { isolation: isolate; }
   #mapwrap #space > .labels { z-index: 2; }
@@ -412,8 +409,7 @@ html { container-name: svb-root; }
   #mapwrap :is(#tip, #pwr-tip) { border-color: rgba(152, 213, 56, 0.55); box-shadow: inset 0 -2px 0 rgba(220, 173, 0, 0.55), 0 0 18px rgba(0, 0, 0, 0.5); }
   #mapwrap .cine-tag { border-color: rgba(223, 221, 220, 0.35); color: #dfdddc; }
 
-  /* power save (the map at 30 fps): the grade and the sight stand down, a pass fewer in every frame */
-  #mapwrap:has(> #pwr.on) :is(#space > canvas, #minimap, .legend i) { filter: none; }
+  /* power save (the map at 30 fps): the sight stands down, a pass fewer in every frame */
   #mapwrap:has(> #pwr.on) #space::after { content: none; }
 
   /* hooks, under the labels: the UAV tier (data-streak-milestone="3") sweeps the map in NVG teal, twice round, range

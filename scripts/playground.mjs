@@ -19,10 +19,10 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { checkPack } from './check.mjs'
 import { checkoutFolders } from './checkout.mjs'
-import { copyPack, mergeThemes } from './preview.mjs'
+import { copyPack, mergeThemes, PLAYGROUND_PAGE } from './preview.mjs'
 import { themeCss, tokensOf, UI_FONTS } from './derive.mjs'
 
-export const FILE = 'svobodens-playground.html'
+export const FILE = PLAYGROUND_PAGE
 /** Where the theme's style sheet goes in the theme script: a JS string, valid even before it's filled in. */
 export const CSS_SLOT = '/*PG:CSS*/""'
 /** Where a chat panel's friend goes in the first script (Swift's __MESSAGES_FRIEND__): JS, null until filled in. */
